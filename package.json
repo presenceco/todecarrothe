@@ -1,0 +1,50 @@
+{
+  "name": "todecarro",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "icones": "node scripts/gerar-icones.ts",
+    "comparar:componentes": "node scripts/comparar-componentes.ts",
+    "db:gerar-seed": "node scripts/gerar-seed.ts",
+    "db:link": "node --env-file=.env.local scripts/supabase.ts link",
+    "db:push": "node --env-file=.env.local scripts/supabase.ts push",
+    "db:config": "node --env-file=.env.local scripts/supabase.ts config",
+    "db:tipos": "node --env-file=.env.local scripts/supabase.ts tipos",
+    "db:fotos": "node --env-file=.env.local scripts/seed-fotos.ts",
+    "criar-admin": "node --env-file=.env.local scripts/criar-admin.ts",
+    "comparar:telas": "node scripts/comparar-telas.ts"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
+    "next": "16.4.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^24",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.2",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
+    "sharp": "^0.35.5",
+    "supabase": "^2.121.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

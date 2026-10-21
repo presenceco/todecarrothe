@@ -1,0 +1,505 @@
+@import "tailwindcss";
+
+/*
+  Design tokens extraídos do CSS inline de referencias/telas.html (telas 01–32).
+  Valores exatos, sem arredondar. Inventário completo em docs/PLANO.md, seção 2.
+
+  --spacing: 1px faz todo utilitário de espaçamento e tamanho valer px:
+  p-16 = 16px · gap-14 = 14px · h-48 = 48px · w-390 = 390px · max-w-640 = 640px.
+*/
+@theme {
+  --spacing: 1px;
+
+  /* Breakpoint único do layout (o HTML não define nenhum; ver PLANO 2.4). */
+  --breakpoint-*: initial;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  --container-*: initial;
+  --container-page: 1440px;
+
+  --font-*: initial;
+  --font-mono: ui-monospace, Menlo, monospace;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /*
+    Tamanhos. O HTML usa o atalho `font: 600 14px Inter`, que zera a altura de linha
+    para `normal`; por isso cada tamanho traz line-height: normal.
+  */
+  --text-*: initial;
+  --text-11: 11px;
+  --text-11--line-height: normal;
+  --text-14: 14px;
+  --text-14--line-height: normal;
+  --text-15: 15px;
+  --text-15--line-height: normal;
+  --text-16: 16px;
+  --text-16--line-height: normal;
+  --text-17: 17px;
+  --text-17--line-height: normal;
+  --text-18: 18px;
+  --text-18--line-height: normal;
+  --text-19: 19px;
+  --text-19--line-height: normal;
+  --text-20: 20px;
+  --text-20--line-height: normal;
+  --text-22: 22px;
+  --text-22--line-height: normal;
+  --text-24: 24px;
+  --text-24--line-height: normal;
+  --text-26: 26px;
+  --text-26--line-height: normal;
+  --text-28: 28px;
+  --text-28--line-height: normal;
+  --text-30: 30px;
+  --text-30--line-height: normal;
+  --text-32: 32px;
+  --text-32--line-height: normal;
+  --text-34: 34px;
+  --text-34--line-height: normal;
+  --text-38: 38px;
+  --text-38--line-height: normal;
+  --text-44: 44px;
+  --text-44--line-height: normal;
+  --text-46: 46px;
+  --text-46--line-height: normal;
+  --text-52: 52px;
+  --text-52--line-height: normal;
+  --text-56: 56px;
+  --text-56--line-height: normal;
+  --text-60: 60px;
+  --text-60--line-height: normal;
+
+  /* Alturas de linha sem unidade. Em px, use leading-20, leading-22 e leading-24 (escala de 1px). */
+  --leading-*: initial;
+  --leading-none: 1;
+  --leading-102: 1.02;
+  --leading-105: 1.05;
+  --leading-108: 1.08;
+  --leading-110: 1.1;
+  --leading-120: 1.2;
+  --leading-125: 1.25;
+  --leading-130: 1.3;
+  --leading-140: 1.4;
+  --leading-145: 1.45;
+  --leading-150: 1.5;
+  --leading-155: 1.55;
+
+  --tracking-*: initial;
+  --tracking-normal: 0;
+  --tracking-price: -0.02em; /* preços */
+  --tracking-table: 0.06em; /* cabeçalho das tabelas do admin */
+  --tracking-eyebrow: 0.08em; /* marca em caixa alta, rótulos de seção */
+  --tracking-label: 0.14em; /* "GESTÃO" no menu lateral */
+  --tracking-password: 0.2em; /* senha mascarada */
+  --tracking-tagline-32: 0.32em; /* "SEMINOVOS" sob o nome no admin */
+  --tracking-tagline-36: 0.36em; /* "SEMINOVOS · TERESINA" (mobile) */
+  --tracking-tagline-42: 0.42em; /* "SEMINOVOS · TERESINA-PI", "PAINEL DO LOJISTA" */
+
+  --radius-*: initial;
+  --radius-2: 2px;
+  --radius-3: 3px;
+  --radius-5: 5px;
+  --radius-6: 6px;
+  --radius-7: 7px;
+  --radius-8: 8px;
+  --radius-9: 9px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-14: 14px;
+  --radius-16: 16px;
+  --radius-24: 24px;
+  --radius-pill: 999px;
+
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Marca */
+  --color-brand: #0045aa;
+  --color-brand-hover: #003080;
+  --color-brand-300: #8fb4ff;
+  --color-brand-200: #b9cef0;
+  --color-brand-100: #eef3fb;
+  --color-brand-50: #e5eefb;
+  --color-brand-25: #f5f8fe;
+  --color-brand-row: #fafcff;
+  --color-silver: #c8c8c8;
+
+  /* Tinta e superfícies escuras */
+  --color-ink: #0b0f17;
+  --color-ink-800: #14171e;
+  --color-ink-700: #1c2230;
+  --color-ink-600: #262b36;
+  --color-ink-500: #2a3140;
+
+  /* Cinzas, do mais escuro ao mais claro */
+  --color-gray-700: #3a4252;
+  --color-gray-650: #4a5262;
+  --color-gray-600: #5b6474;
+  --color-gray-500: #6b7385;
+  --color-gray-450: #7a8394;
+  --color-gray-400: #8a93a3;
+  --color-gray-350: #9aa3b2;
+  --color-gray-300: #a3acba;
+  --color-gray-250: #b8c0cc;
+  --color-gray-240: #b8c2d3;
+  --color-gray-200: #d5dae1;
+  --color-gray-190: #d9dce1;
+  --color-gray-180: #dce1e8;
+  --color-gray-170: #dfe3e9;
+  --color-gray-160: #e2e6ed;
+  --color-gray-150: #e4e8ef;
+  --color-gray-140: #e8ebf0;
+  --color-gray-130: #eceef1;
+  --color-gray-120: #edf0f4;
+  --color-gray-100: #f5f7fa;
+  --color-gray-50: #f8fafc;
+  --color-gray-25: #fafbfc;
+
+  /* WhatsApp */
+  --color-whatsapp: #1faf5a;
+  --color-whatsapp-dark: #138a45;
+  --color-whatsapp-bubble: #dcf8c6;
+
+  /* Status (selos de veículo, pedido, simulação e consignação) */
+  --color-success: #17803d;
+  --color-success-bg: #e3f5ea;
+  --color-warning: #8a6300;
+  --color-warning-bg: #fff3cc;
+  --color-warning-border: #e2c35a;
+  --color-neutral: #5b6474;
+  --color-neutral-bg: #eceef1;
+  --color-info: #0045aa;
+  --color-info-bg: #e5eefb;
+  --color-danger: #b42318;
+  --color-danger-bg: #fde8e8;
+
+  /* Fundos escurecidos atrás de painéis */
+  --color-scrim: rgba(5, 8, 15, 0.6);
+  --color-scrim-panel: rgba(8, 12, 22, 0.45);
+
+  --shadow-*: initial;
+  --shadow-card: 0 1px 2px rgba(10, 20, 40, 0.06), 0 8px 24px rgba(10, 20, 40, 0.06);
+  --shadow-card-soft: 0 1px 2px rgba(10, 20, 40, 0.05), 0 8px 24px rgba(10, 20, 40, 0.05);
+  --shadow-hairline: 0 1px 2px rgba(10, 20, 40, 0.05);
+  --shadow-float: 0 1px 2px rgba(10, 20, 40, 0.06), 0 16px 40px rgba(10, 20, 40, 0.1);
+  --shadow-form-card: 0 1px 2px rgba(10, 20, 40, 0.06), 0 24px 48px rgba(10, 20, 40, 0.1);
+  --shadow-login-card: 0 1px 2px rgba(10, 20, 40, 0.06), 0 24px 48px rgba(10, 20, 40, 0.12);
+  --shadow-login-card-desktop: 0 1px 2px rgba(10, 20, 40, 0.06), 0 24px 48px rgba(10, 20, 40, 0.08);
+  --shadow-search: 0 8px 24px rgba(10, 20, 40, 0.14);
+  --shadow-filter-button: 0 8px 24px rgba(0, 69, 170, 0.3);
+  --shadow-footer: 0 -8px 24px rgba(10, 20, 40, 0.08);
+  --shadow-badge: 0 2px 8px rgba(0, 0, 0, 0.18);
+  --shadow-slider-thumb: 0 2px 6px rgba(0, 0, 0, 0.18);
+  --shadow-switch-knob: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-gallery-arrow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-map-pin: 0 6px 16px rgba(0, 48, 128, 0.4);
+  --shadow-finance-cta: 0 12px 28px rgba(0, 48, 128, 0.28);
+  --shadow-fab: 0 12px 28px rgba(0, 48, 128, 0.4);
+  --shadow-success: 0 0 0 10px rgba(0, 69, 170, 0.1), 0 16px 32px rgba(0, 48, 128, 0.3);
+  --shadow-focus: 0 0 0 4px rgba(0, 69, 170, 0.12);
+  --shadow-ring-brand: 0 0 0 3px #0045aa;
+  --shadow-nav-active: inset 0 -2px 0 #0045aa;
+  --shadow-menu: 0 16px 40px rgba(10, 20, 40, 0.18);
+  --shadow-drag: 0 16px 32px rgba(10, 20, 40, 0.25);
+  --shadow-panel: -24px 0 48px rgba(0, 0, 0, 0.18);
+  --shadow-drawer: -24px 0 48px rgba(0, 0, 0, 0.4);
+
+  /*
+    Movimento (não vem das telas, que são estáticas). Curvas fortes de saída para entradas e
+    respostas ao toque; a curva de gaveta do iOS para painéis. Nada passa de 300 ms.
+  */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Famílias: --font-inter, --font-exo2 e --font-material-symbols vêm do next/font (app/fonts.ts). */
+@theme inline {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-exo2), sans-serif;
+  --font-icon: var(--font-material-symbols);
+}
+
+:root {
+  --gradient-destaque: linear-gradient(180deg, #ffffff 0%, #c8c8c8 100%);
+  --gradient-filete: linear-gradient(90deg, rgba(200, 200, 200, 0), #c8c8c8, rgba(200, 200, 200, 0));
+}
+
+/* Placeholder hachurado das fotos (cartões e galeria) e das miniaturas do cadastro. */
+@utility bg-hatch {
+  background: repeating-linear-gradient(135deg, #e8ebf0 0 10px, #dfe3e9 10px 20px);
+}
+
+@utility bg-hatch-sm {
+  background: repeating-linear-gradient(135deg, #e8ebf0 0 6px, #dfe3e9 6px 12px);
+}
+
+/* Selo "Destaque" (prata). */
+@utility bg-destaque {
+  background: var(--gradient-destaque);
+}
+
+/* Filete prateado sob o hero e no menu lateral. */
+@utility bg-filete {
+  background: var(--gradient-filete);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* O flash cinza do toque briga com o feedback de :active dos componentes. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Painel aberto: a página por trás não rola. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-gray-100);
+    font-family: var(--font-inter), system-ui, sans-serif;
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Sem o atraso de toque duplo em nada que seja clicável. */
+  a,
+  button,
+  label,
+  summary,
+  select,
+  input,
+  textarea,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: default;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after,
+    ::backdrop {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Equivalente à classe .material-symbols-rounded das referências. */
+  .icon {
+    font-family: var(--font-material-symbols);
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  .icon-fill {
+    font-variation-settings: "FILL" 1;
+  }
+
+  /*
+    Controles (botões, chips, abas): o texto não é selecionável no toque longo e o toque
+    responde já ao encostar o dedo, encolhendo 3% (como um botão nativo).
+  */
+  .pressable {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    transition-property: transform, background-color, border-color, color, box-shadow, opacity;
+    transition-duration: 160ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  .pressable:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(0.97);
+  }
+
+  /* Painel modal (components/ui/sheet.tsx). O <dialog> cobre a tela; .sheet-painel é a caixa visível. */
+  .sheet {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+    display: none;
+  }
+
+  .sheet[open] {
+    display: flex;
+  }
+
+  .sheet[data-side="bottom"] {
+    align-items: flex-end;
+  }
+
+  .sheet[data-side="right"] {
+    justify-content: flex-end;
+  }
+
+  /* Valores literais: navegadores antigos (Safari < 17.4) não herdam variáveis no ::backdrop. */
+  .sheet::backdrop {
+    background: rgba(5, 8, 15, 0.6);
+    transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .sheet[data-closing]::backdrop {
+    opacity: 0;
+    transition-duration: 200ms;
+  }
+
+  .sheet-painel {
+    transition: transform 280ms var(--ease-drawer);
+    overscroll-behavior: contain;
+  }
+
+  .sheet[data-side="bottom"] .sheet-painel {
+    width: 100%;
+  }
+
+  .sheet[data-side="right"] .sheet-painel {
+    height: 100%;
+    touch-action: pan-y;
+  }
+
+  .sheet[data-closing] .sheet-painel {
+    transition-duration: 200ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  .sheet[data-closing][data-side="bottom"] .sheet-painel {
+    transform: translateY(100%);
+  }
+
+  .sheet[data-closing][data-side="right"] .sheet-painel {
+    transform: translateX(100%);
+  }
+
+  @starting-style {
+    .sheet[open]::backdrop {
+      opacity: 0;
+    }
+
+    .sheet[open][data-side="bottom"] .sheet-painel {
+      transform: translateY(100%);
+    }
+
+    .sheet[open][data-side="right"] .sheet-painel {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Painel lateral do admin (components/ui/side-panel.tsx): entra deslizando da direita. */
+  .side-panel-caixa {
+    transition: transform 280ms var(--ease-drawer);
+  }
+
+  .side-panel-fundo {
+    transition: opacity 280ms var(--ease-out);
+  }
+
+  @starting-style {
+    .side-panel-caixa {
+      transform: translateX(100%);
+    }
+
+    .side-panel-fundo {
+      opacity: 0;
+    }
+  }
+
+  /* Alças da faixa de preço (components/ui/range-slider.tsx): só a alça recebe o toque. */
+  .range-alca::-webkit-slider-runnable-track {
+    background: transparent;
+    height: 28px;
+  }
+
+  .range-alca::-webkit-slider-thumb {
+    pointer-events: auto;
+    appearance: none;
+    box-sizing: border-box;
+    width: 24px;
+    height: 24px;
+    margin-top: 2px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 2px solid var(--color-brand);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .range-alca::-moz-range-thumb {
+    pointer-events: auto;
+    box-sizing: border-box;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 2px solid var(--color-brand);
+    cursor: grab;
+  }
+
+  .range-alca-sombra::-webkit-slider-thumb {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  }
+
+  .range-alca-sombra::-moz-range-thumb {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  }
+
+  .range-alca:focus-visible {
+    outline: none;
+  }
+
+  .range-alca:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  .range-alca:active::-webkit-slider-thumb {
+    cursor: grabbing;
+  }
+
+  /* Área de arrasto do painel inferior: o gesto é do painel, não da rolagem. */
+  [data-sheet-drag] {
+    touch-action: none;
+  }
+}

@@ -1,0 +1,44 @@
+# dependências
+/node_modules
+/.pnp
+.pnp.*
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# build
+/build
+
+# variáveis de ambiente (o .env.example é versionado)
+.env*
+!.env.example
+
+# Supabase local
+/supabase/.branches
+/supabase/.temp
+
+# Playwright e comparação visual
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/relatorios/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Vercel
+.vercel
+
+# Cópia original do bundle das telas (a versão usada pelo projeto é referencias/telas.html)
+/Catálogo Tô de Carro (32 telas).html
