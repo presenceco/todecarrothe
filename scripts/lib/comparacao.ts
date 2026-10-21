@@ -182,17 +182,18 @@ async function areasHachuradas(page: Page, seletor: string): Promise<Retangulo[]
 }
 
 export async function compararCaso(refPage: Page, appPage: Page, caso: Caso, pasta: string): Promise<Resultado> {
-  if (caso.paginaInteira) {
-    const largura = appPage.viewportSize()?.width ?? 390;
-    const altura = await appPage.evaluate(() => document.documentElement.scrollHeight);
-    await appPage.setViewportSize({ width: largura, height: altura });
-    await esperarPronto(appPage);
-  }
   if (caso.preparar) {
     await caso.preparar(appPage);
     // Tira o ponteiro de cima dos botões (o clique deixa um estado de hover onde abriu o painel).
     await appPage.mouse.move(1, 1);
     await appPage.waitForTimeout(200);
+  }
+  // Depois do preparar: ele pode mudar a altura da página (campos que aparecem).
+  if (caso.paginaInteira) {
+    const largura = appPage.viewportSize()?.width ?? 390;
+    const altura = await appPage.evaluate(() => document.documentElement.scrollHeight);
+    await appPage.setViewportSize({ width: largura, height: altura });
+    await esperarPronto(appPage);
   }
   await alinharFracao(appPage, caso.app, await posicao(refPage, caso.ref));
   const ref = await capturar(refPage, caso.ref);

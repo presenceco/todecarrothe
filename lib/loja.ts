@@ -45,6 +45,12 @@ export const loja = {
    * O toque no mapa abre `mapaUrl`.
    */
   imagemMapa: null as string | null,
+
+  /**
+   * TODO: dado real do cliente. Texto da política de privacidade, um parágrafo por item (a loja define com
+   * quem cuida da parte jurídica). Enquanto for null, a página mostra um aviso e fica fora dos buscadores.
+   */
+  politicaPrivacidade: null as readonly string[] | null,
 };
 
 /** Link wa.me para o WhatsApp da loja, com mensagem opcional já escrita. */

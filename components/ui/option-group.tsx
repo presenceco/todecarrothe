@@ -29,6 +29,8 @@ type Props = {
   shape?: "box" | "pill";
   /** Grade das opções (ex.: "grid grid-cols-4 gap-8"). */
   className?: string;
+  /** Classes extras de cada opção (ex.: altura do desktop, "lg:h-52"). */
+  itemClassName?: string;
   value?: string | readonly string[];
   defaultValue?: string | readonly string[];
   onValueChange?: (value: string, checked: boolean) => void;
@@ -47,6 +49,7 @@ export function OptionGroup({
   textSize = 14,
   shape = "box",
   className = "grid grid-cols-2 gap-8",
+  itemClassName,
   value,
   defaultValue,
   onValueChange,
@@ -74,6 +77,8 @@ export function OptionGroup({
               "has-checked:border-brand has-checked:bg-brand has-checked:text-white",
               "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand",
               "has-disabled:cursor-default has-disabled:opacity-50",
+              invalid && "border-danger!",
+              itemClassName,
             )}
           >
             <input

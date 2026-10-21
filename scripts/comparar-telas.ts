@@ -24,6 +24,29 @@ async function clicar(page: Page, seletor: string) {
   await page.waitForTimeout(600); // animação de entrada do painel (280ms) com folga
 }
 
+/** Estado das pranchas 04/05b/23: troca e CNH "Sim", prazo 48 e (no mobile) o nome preenchido com foco. */
+async function prepararSimulacao(page: Page, nome: boolean) {
+  for (const [campo, valor] of [["prazo", "48"], ["temTroca", "sim"], ["possuiCnh", "sim"]]) {
+    await page.locator(`label:has(input[name='${campo}'][value='${valor}'])`).click();
+  }
+  if (nome) await page.locator("#campo-nome").fill("Ana Paula Rocha");
+  await page.waitForTimeout(300);
+}
+
+/** Estado das pranchas 07/24: "Financiado" escolhido; no mobile, nome e WhatsApp preenchidos e foco no modelo. */
+async function prepararPedido(page: Page, preencher: boolean) {
+  await page.locator("label:has(input[name='pagamento'][value='financiado'])").click();
+  if (preencher) {
+    await page.locator("#campo-nome").fill("Carlos Menezes");
+    await page.locator("#campo-whatsapp").fill("86998124471");
+    await page.locator("#campo-marcaModelo").focus();
+  }
+  await page.waitForTimeout(300);
+}
+
+/** As pranchas mostram o interruptor ligado sem os campos do carro da entrada; o app abre Modelo e Ano. */
+const INTERRUPTOR = "interruptor: a prancha o mostra ligado sem os campos; no app ligado abre Modelo e Ano (comparado desligado)";
+
 type Tela = Caso & { tela: string };
 
 const TELAS: Tela[] = [
@@ -58,6 +81,62 @@ const TELAS: Tela[] = [
     app: "body",
     mascararFotos: true,
     paginaInteira: true,
+  },
+  {
+    tela: "04",
+    nome: "04-simular-veiculo-mobile",
+    viewport: "mobile",
+    ref: "#n04 .dv-card",
+    rota: "/simular/toyota-corolla-xei-2-0-2023",
+    app: "body",
+    mascararFotos: true,
+    paginaInteira: true,
+    preparar: (p) => prepararSimulacao(p, true),
+  },
+  {
+    tela: "05",
+    nome: "05-simular-lista-mobile",
+    viewport: "mobile",
+    ref: "#n05 .dv-card",
+    rota: "/simular",
+    app: "body",
+    mascararFotos: true,
+    // Até o 8º veículo: a prancha tem 8 e o "Ainda não escolhi"; o app lista os 31.
+    altura: 934,
+    nota: "Compara até o 8º veículo (a prancha lista 8; o catálogo real tem 31).",
+  },
+  {
+    tela: "05b",
+    nome: "05b-simular-sem-veiculo-mobile",
+    viewport: "mobile",
+    ref: "#n05b .dv-card",
+    rota: "/simular/sem-veiculo",
+    app: "body",
+    paginaInteira: true,
+    preparar: (p) => prepararSimulacao(p, true),
+  },
+  {
+    tela: "06",
+    nome: "06-simulacao-enviada-mobile",
+    viewport: "mobile",
+    ref: "#n06 .dv-card",
+    rota: "/simular/enviado?veiculo=toyota-corolla-xei-2-0-2023",
+    app: "body",
+    mascararFotos: true,
+  },
+  {
+    tela: "07",
+    nome: "07-pedido-busca-mobile",
+    viewport: "mobile",
+    ref: "#n07 .dv-card",
+    rota: "/nao-encontrou",
+    app: "body",
+    paginaInteira: true,
+    preparar: (p) => prepararPedido(p, true),
+    mascaras: [
+      { x: 33, y: 391, w: 324, h: 52, motivo: "WhatsApp: a prancha escreve (86) 99812-4471; o app usa a máscara do placeholder, (86) 9 9812-4471" },
+      { x: 300, y: 828, w: 62, h: 40, motivo: INTERRUPTOR },
+    ],
   },
   {
     tela: "08",
@@ -111,6 +190,30 @@ const TELAS: Tela[] = [
     app: "body",
     mascararFotos: true,
     mascaras: [{ x: 360, y: 0, w: 820, h: 84, motivo: NAV }],
+  },
+  {
+    tela: "23",
+    nome: "23-simular-veiculo-desktop",
+    viewport: "desktop",
+    ref: "#n23 .dv-card",
+    rota: "/simular/toyota-corolla-xei-2-0-2023",
+    app: "body",
+    mascararFotos: true,
+    mascaras: [{ x: 360, y: 0, w: 820, h: 84, motivo: NAV }],
+    preparar: (p) => prepararSimulacao(p, false),
+  },
+  {
+    tela: "24",
+    nome: "24-pedido-busca-desktop",
+    viewport: "desktop",
+    ref: "#n24 .dv-card",
+    rota: "/nao-encontrou",
+    app: "body",
+    preparar: (p) => prepararPedido(p, false),
+    mascaras: [
+      { x: 360, y: 0, w: 820, h: 84, motivo: NAV },
+      { x: 951, y: 696, w: 62, h: 42, motivo: INTERRUPTOR },
+    ],
   },
   {
     tela: "25",
