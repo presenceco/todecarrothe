@@ -113,9 +113,12 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
           <Icon name="chat" size={20} fill />
           Tenho interesse
         </ButtonAnchor>
-        {/* A linha da tela 03 precisa de 388px; abaixo disso o botão diz só "Simular" (sem quebrar nem vazar). */}
-        <ButtonLink href={simular} size="lg-15" aria-label="Simular financiamento" className="min-w-0 flex-1">
-          <span className="max-[387px]:hidden">Simular financiamento</span>
+        {/*
+          Respiro lateral do texto: 12px a partir de 403px; entre 388 e 402px (inclui 390) o texto vai a 14px com 10px
+          de respiro para caber ao lado de "Tenho interesse"; abaixo de 388px o botão diz só "Simular".
+        */}
+        <ButtonLink href={simular} size="lg-15" aria-label="Simular financiamento" className="min-w-0 flex-1 px-12 max-[402px]:px-10">
+          <span className="max-[402px]:text-14 max-[387px]:hidden">Simular financiamento</span>
           <span className="hidden max-[387px]:inline">Simular</span>
         </ButtonLink>
       </StickyFooter>

@@ -1,6 +1,6 @@
 import { VehicleCard } from "@/components/catalogo/vehicle-card";
 import { CtaNaoEncontrou } from "@/components/catalogo/cta-nao-encontrou";
-import { listarCatalogo } from "@/lib/catalogo/consultas";
+import { anoCorrente, listarCatalogo } from "@/lib/catalogo/consultas";
 import {
   aplicarFiltros,
   atributosFiltro,
@@ -13,7 +13,7 @@ import { compararMarcas } from "@/lib/marcas";
 import { FiltrosLateral } from "./filtros-lateral";
 import { FiltrosMobile } from "./filtros-mobile";
 import { Ordenar } from "./ordenar";
-import { Atalhos, Busca, ChipsMarca, FiltrosAtivos, HeroDesktop, HeroMobile, SemResultado, textoTotal } from "./partes";
+import { Atalhos, Busca, ChipsMarca, FiltrosAtivos, Hero, SemResultado, textoTotal } from "./partes";
 
 type ParametrosBusca = Promise<Record<string, string | string[] | undefined>>;
 
@@ -31,12 +31,15 @@ export async function Vitrine({ searchParams }: { searchParams: ParametrosBusca 
   const chips = chipsAtivos(filtros, new Map(marcas.map((m) => [m.slug, m.nome])));
   const filtrado = chips.length > 0;
   const atributos = atributosFiltro(todos);
+  // Filtro de ano: do carro mais antigo do catálogo até o ano corrente (ou o modelo mais novo, se for do ano que vem).
+  const anoAgora = await anoCorrente();
   const anosModelo = todos.map((v) => v.anoModelo);
-  const anos = anosModelo.length ? { min: Math.min(...anosModelo), max: Math.max(...anosModelo) } : { min: 2010, max: 2026 };
+  const anos = { min: Math.min(anoAgora, ...anosModelo), max: Math.max(anoAgora, ...anosModelo) };
   const filtrosMobile = { filtros, atributos, marcas, anos };
 
   return (
     <>
+      <Hero filtros={filtros} soDesktop={filtrado} />
       {filtrado ? (
         <div className="flex gap-8 bg-black px-16 pt-8 pb-16 lg:hidden">
           <Busca filtros={filtros} variante="mobile" />
@@ -44,7 +47,6 @@ export async function Vitrine({ searchParams }: { searchParams: ParametrosBusca 
         </div>
       ) : (
         <>
-          <HeroMobile />
           <div className="relative -mt-26 flex gap-8 px-16 lg:hidden">
             <Busca filtros={filtros} variante="mobile" sombra />
             <FiltrosMobile {...filtrosMobile} sombra />
@@ -53,7 +55,6 @@ export async function Vitrine({ searchParams }: { searchParams: ParametrosBusca 
           <Atalhos filtros={filtros} variante="mobile" />
         </>
       )}
-      <HeroDesktop filtros={filtros} />
       <FiltrosAtivos chips={chips} />
 
       <div className="mx-auto max-w-page lg:grid lg:grid-cols-[296px_minmax(0,1fr)] lg:items-start lg:gap-32 lg:px-32 lg:pt-40 lg:pb-64 xl:px-64">
@@ -112,12 +113,11 @@ export function VitrineCarregando() {
   );
   return (
     <div aria-busy="true" aria-label="Carregando o estoque">
-      <HeroMobile />
+      <Hero filtros={FILTROS_VAZIOS} />
       <div className="relative -mt-26 flex gap-8 px-16 lg:hidden">
         <div className="h-52 flex-1 rounded-14 bg-white shadow-search" />
         <div className="size-52 rounded-14 bg-brand shadow-filter-button" />
       </div>
-      <HeroDesktop filtros={FILTROS_VAZIOS} />
       <div className="mx-auto max-w-page lg:grid lg:grid-cols-[296px_minmax(0,1fr)] lg:items-start lg:gap-32 lg:px-32 lg:pt-40 lg:pb-64 xl:px-64">
         <div className="hidden h-640 rounded-16 bg-white shadow-card-soft lg:block" />
         <ul className="flex flex-col gap-16 px-16 pt-80 lg:grid lg:grid-cols-3 lg:gap-24 lg:px-0 lg:pt-66">

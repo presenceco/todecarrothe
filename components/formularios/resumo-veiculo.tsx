@@ -12,7 +12,7 @@ export function ResumoEscuro({ v }: Props) {
   return (
     <div className="flex items-center gap-12 rounded-16 border border-ink-600 bg-ink-800 p-12 text-white">
       <div className="relative h-78 w-104 flex-none overflow-hidden rounded-10 bg-hatch-sm">
-        {v.capa && <Image src={v.capa.src} alt="" fill sizes="104px" className="object-cover" />}
+        {v.capa && <Image src={v.capa.src} alt={v.capa.alt} fill sizes="104px" className="object-cover" />}
       </div>
       <div className="min-w-0">
         <p className="text-14 font-bold tracking-eyebrow text-brand-300 uppercase">{v.marca}</p>

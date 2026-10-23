@@ -9,8 +9,9 @@ import { NAV_ADMIN, rotaAtiva, rotuloNovos, type Contadores } from "@/lib/navega
 
 /**
  * Barra inferior do admin mobile (tela 12): 76px, preta, 4 abas (Estoque · Pedidos · Simulações · Consignações).
- * Abas com largura igual sempre que cabem; se a tela for estreita, a de rótulo maior ("Consignações",
- * 96,8px) cresce e as outras cedem, para nenhum rótulo quebrar nem diminuir (dúvida 12).
+ * Cada aba mede o próprio rótulo mais uma parte igual do espaço que sobra (flex 1 1 auto): o rótulo maior
+ * ("Consignações", 96,8px) nunca encosta na borda nem invade a aba vizinha, sem hífen e sem diminuir a
+ * fonte. Sobra por lado do rótulo: ~9,5px em 360px e ~13px em 390px.
  * Fica presa ao pé da tela e soma a área da barra de gestos do iPhone.
  */
 export function AdminTabBar({ contadores, className }: { contadores: Contadores; className?: string }) {
@@ -32,7 +33,7 @@ export function AdminTabBar({ contadores, className }: { contadores: Contadores;
             href={item.href}
             aria-current={ativo ? "page" : undefined}
             className={cn(
-              "pressable relative flex min-w-max flex-1 basis-0 flex-col items-center justify-center gap-2",
+              "pressable relative flex flex-auto flex-col items-center justify-center gap-2 whitespace-nowrap",
               ativo ? "text-white" : "text-gray-450",
             )}
           >

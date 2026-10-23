@@ -11,26 +11,25 @@ import type { MarcaContada } from "./painel-filtros";
 
 /* ---------------------------------------------------------------- Hero */
 
-/** Hero mobile (01): tagline, título e filete. A busca sobe 26px sobre ele. */
-export function HeroMobile() {
+/**
+ * Hero do estoque com um único h1 (o layout muda só por CSS).
+ * Mobile (01): tagline, título de 32px e filete; a busca sobe 26px sobre ele.
+ * Desktop (21): símbolo ao fundo, tagline, título de 60px, busca com botão e atalhos em pílula.
+ * `soDesktop`: com filtro ativo, o mobile mostra a faixa compacta (08) no lugar do hero.
+ */
+export function Hero({ filtros, soDesktop }: { filtros: Filtros; soDesktop?: boolean }) {
   return (
-    <div className="relative overflow-hidden bg-black px-20 pt-14 pb-46 text-white lg:hidden">
-      <p className="text-14 font-light tracking-tagline-36 text-silver">SEMINOVOS · TERESINA</p>
-      <h1 className="mt-8 max-w-300 font-display text-32 leading-105 font-extrabold italic">Seu próximo carro está aqui</h1>
-      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1 bg-filete opacity-50" />
-    </div>
-  );
-}
-
-/** Hero desktop (21): tagline, título de 60px, busca com botão e atalhos em pílula. */
-export function HeroDesktop({ filtros }: { filtros: Filtros }) {
-  return (
-    <div className="relative hidden overflow-hidden bg-black text-white lg:block">
-      <div className="relative mx-auto max-w-page px-32 pt-36 pb-56 xl:px-64">
-        <Simbolo className="pointer-events-none absolute -top-60 right-40 w-380 opacity-12" />
-        <p className="relative text-14 font-light tracking-tagline-42 text-silver">SEMINOVOS · TERESINA-PI</p>
-        <h1 className="relative mt-12 font-display text-60 leading-none font-extrabold italic">Seu próximo carro está aqui</h1>
-        <div className="relative mt-28 flex flex-wrap items-center gap-12">
+    <div className={cn("relative overflow-hidden bg-black text-white", soDesktop && "max-lg:hidden")}>
+      <div className="relative px-20 pt-14 pb-46 lg:mx-auto lg:max-w-page lg:px-32 lg:pt-36 lg:pb-56 xl:px-64">
+        <Simbolo className="pointer-events-none absolute -top-60 right-40 hidden w-380 opacity-12 lg:block" />
+        <p className="relative text-14 font-light tracking-tagline-36 text-silver lg:tracking-tagline-42">
+          <span className="lg:hidden">SEMINOVOS · TERESINA</span>
+          <span className="hidden lg:inline">SEMINOVOS · TERESINA-PI</span>
+        </p>
+        <h1 className="relative mt-8 max-w-300 font-display text-32 leading-105 font-extrabold italic lg:mt-12 lg:max-w-none lg:text-60 lg:leading-none">
+          Seu próximo carro está aqui
+        </h1>
+        <div className="relative mt-28 hidden flex-wrap items-center gap-12 lg:flex">
           <Busca filtros={filtros} variante="desktop" />
           <Atalhos filtros={filtros} variante="desktop" />
         </div>
@@ -148,6 +147,7 @@ export function Atalhos({ filtros, variante }: { filtros: Filtros; variante: "mo
             key={a.chave}
             href={hrefFiltros(a.alternado)}
             scroll={false}
+            aria-label={a.rotulo}
             aria-current={a.ativo ? "true" : undefined}
             className={cn(
               "pressable flex h-50 items-center gap-8 rounded-pill border px-18 text-15 font-semibold",
@@ -168,6 +168,7 @@ export function Atalhos({ filtros, variante }: { filtros: Filtros; variante: "mo
           key={a.chave}
           href={hrefFiltros(a.alternado)}
           scroll={false}
+          aria-label={a.rotulo}
           aria-current={a.ativo ? "true" : undefined}
           className={cn(
             "pressable flex h-70 flex-col justify-center gap-4 rounded-14 border px-12",

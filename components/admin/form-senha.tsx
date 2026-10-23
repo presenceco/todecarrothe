@@ -16,15 +16,22 @@ function VoltarAoLogin() {
   );
 }
 
-/** "Esqueci minha senha": e-mail → link do Supabase. Depois do envio, mostra o aviso no lugar do formulário. */
-export function FormEsqueci() {
+/**
+ * "Esqueci minha senha": e-mail → link do Supabase. Depois do envio, mostra o aviso no lugar do formulário.
+ * `soSenha` (ADMIN_EMAIL configurado): não pede o e-mail; o link vai para o e-mail do painel.
+ */
+export function FormEsqueci({ soSenha }: { soSenha?: boolean }) {
   const [estado, acao, pendente] = useActionState<EstadoEsqueci, FormData>(pedirRedefinicao, {});
   if (estado.enviado) {
     return (
       <>
         <AvisoEntrada
           tom="info"
-          mensagem={`Se ${estado.email} for o e-mail do painel, você vai receber um link para criar uma senha nova. Confira também o spam.`}
+          mensagem={
+            estado.email
+              ? `Se ${estado.email} for o e-mail do painel, você vai receber um link para criar uma senha nova. Confira também o spam.`
+              : "Enviamos um link para o e-mail cadastrado do painel. Abra o e-mail e crie uma senha nova. Confira também o spam."
+          }
         />
         <VoltarAoLogin />
       </>
@@ -33,17 +40,19 @@ export function FormEsqueci() {
   return (
     <form action={acao} className="contents">
       <AvisoEntrada mensagem={estado.erro} />
-      <TextInput
-        name="email"
-        label="E-mail"
-        type="email"
-        autoComplete="username"
-        inputMode="email"
-        autoCapitalize="none"
-        spellCheck={false}
-        required
-        defaultValue={estado.email}
-      />
+      {!soSenha && (
+        <TextInput
+          name="email"
+          label="E-mail"
+          type="email"
+          autoComplete="username"
+          inputMode="email"
+          autoCapitalize="none"
+          spellCheck={false}
+          required
+          defaultValue={estado.email}
+        />
+      )}
       <BotaoEntrada pendente={pendente}>Enviar link</BotaoEntrada>
       <VoltarAoLogin />
     </form>

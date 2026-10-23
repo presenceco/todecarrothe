@@ -52,7 +52,7 @@ export function ListaSimular({ itens }: { itens: readonly ItemSimular[] }) {
                 className="pressable flex items-center gap-12 rounded-14 border border-gray-150 bg-white py-10 pr-4 pl-10 hover:border-gray-200"
               >
                 <span className="relative h-54 w-72 flex-none overflow-hidden rounded-8 bg-hatch-sm">
-                  {i.capa && <Image src={i.capa} alt="" fill sizes="72px" className="object-cover" />}
+                  {i.capa && <Image src={i.capa} alt={`${i.nome} – foto 1`} fill sizes="72px" className="object-cover" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-15 font-bold">{i.nome}</span>

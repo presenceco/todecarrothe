@@ -2,6 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { clientePublico } from "@/lib/supabase/publico";
 import { urlFotoVeiculo } from "@/lib/supabase/config";
+import { anoAtual } from "@/lib/formato";
 import type { Selo, VeiculoCatalogo, VeiculoDetalhe } from "@/lib/tipos";
 
 /**
@@ -20,10 +21,15 @@ function nomeCompleto(v: { marca: string; modelo: string; versao: string }) {
   return [v.marca, v.modelo, v.versao].filter(Boolean).join(" ");
 }
 
+/** Texto alternativo das fotos de carro: "Toyota Corolla XEi 2.0 – foto 1" (Google Imagens e leitores de tela). */
+export function textoAltFoto(nome: string, indice: number) {
+  return `${nome} – foto ${indice + 1}`;
+}
+
 function fotosOrdenadas(fotos: LinhaFoto[], nome: string) {
   return [...fotos]
     .sort((a, b) => a.ordem - b.ordem)
-    .map((f, i) => ({ src: urlFotoVeiculo(f.path), alt: `${nome}, foto ${i + 1} de ${fotos.length}` }));
+    .map((f, i) => ({ src: urlFotoVeiculo(f.path), alt: textoAltFoto(nome, i) }));
 }
 
 function paraCatalogo(v: {
@@ -111,4 +117,11 @@ export async function obterVeiculo(slug: string): Promise<VeiculoDetalhe | null>
     opcionais,
     fotos: fotosOrdenadas(data.veiculo_fotos, nomeCompleto(data)),
   };
+}
+
+/** Ano corrente no fuso da loja (limite do filtro de ano). Em cache: refeito de hora em hora. */
+export async function anoCorrente() {
+  "use cache";
+  cacheLife("hours");
+  return anoAtual();
 }

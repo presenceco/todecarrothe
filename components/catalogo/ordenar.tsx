@@ -13,7 +13,8 @@ export function Ordenar({ filtros }: { filtros: Filtros }) {
   const atual = ORDENS.find((o) => o.valor === filtros.ordem) ?? ORDENS[0];
 
   return (
-    <label className="relative flex items-center gap-2 text-14 font-medium text-gray-650 lg:box-border lg:h-46 lg:gap-6 lg:rounded-12 lg:border lg:border-gray-150 lg:bg-white lg:pr-10 lg:pl-14 lg:text-15 lg:text-gray-700 lg:focus-within:outline-2 lg:focus-within:outline-brand">
+    // Mobile: área de toque de 48px; a margem negativa mantém a linha com a altura do texto (01).
+    <label className="relative flex items-center gap-2 text-14 font-medium text-gray-650 max-lg:-my-14 max-lg:h-48 lg:box-border lg:h-46 lg:gap-6 lg:rounded-12 lg:border lg:border-gray-150 lg:bg-white lg:pr-10 lg:pl-14 lg:text-15 lg:text-gray-700 lg:focus-within:outline-2 lg:focus-within:outline-brand">
       {/* Texto num nó só: com gap no flex, "Ordenar: " separado perderia o espaço e ganharia 6px. */}
       <span className="lg:hidden">{atual.rotulo}</span>
       <span className="hidden lg:inline">{`Ordenar: ${atual.rotulo}`}</span>

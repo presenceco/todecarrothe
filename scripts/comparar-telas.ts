@@ -90,11 +90,11 @@ const CONTAGEM = "contagens: vêm do banco (envios de teste somam aos do seed)";
 const AVATAR = { x: 334, y: 12, w: 48, h: 48, motivo: "avatar: iniciais do usuário admin real" };
 const RODAPE_MENU = { x: 0, y: 830, w: 248, h: 70, motivo: "rodapé do menu: nome e papel do usuário admin real" };
 
-/** Esconde os envios de teste dos fluxos (nome "Teste Automatizado"), que não existem nas pranchas. */
+/** Esconde os envios de teste (nomes "Teste Automatizado" e "TESTE"), que não existem nas pranchas. */
 async function esconderTestes(page: Page) {
   await page.evaluate(() => {
     for (const el of document.querySelectorAll("article, [role=row]")) {
-      if (el.textContent?.includes("Teste Automatizado")) (el as HTMLElement).style.display = "none";
+      if (/Teste Automatizado|TESTE/.test(el.textContent ?? "")) (el as HTMLElement).style.display = "none";
     }
   });
   await page.waitForTimeout(200);

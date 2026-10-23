@@ -34,7 +34,7 @@ export function VehicleCard({
         {veiculo.capa && (
           <Image
             src={veiculo.capa.src}
-            alt=""
+            alt={veiculo.capa.alt}
             fill
             sizes="(min-width: 1440px) 352px, (min-width: 1024px) 30vw, 100vw"
             preload={preload}

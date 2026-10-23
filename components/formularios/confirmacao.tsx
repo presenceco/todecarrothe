@@ -57,7 +57,7 @@ export function Confirmacao({
                 </div>
               ) : (
                 <div className="relative h-60 w-80 flex-none overflow-hidden rounded-10 bg-hatch-sm">
-                  {resumo.foto && <Image src={resumo.foto} alt="" fill sizes="80px" className="object-cover" />}
+                  {resumo.foto && <Image src={resumo.foto} alt={`${resumo.titulo} – foto 1`} fill sizes="80px" className="object-cover" />}
                 </div>
               )}
               <div className="min-w-0 flex-1">

@@ -8,6 +8,13 @@ export const loja = {
   nome: "Tô de Carro Seminovos",
   cidade: "Teresina-PI",
 
+  /** Nome no texto de direitos do rodapé ("Todos os direitos reservados Tô de Carro The © 2026"). */
+  marcaRodape: "Tô de Carro The",
+
+  /** Redes sociais (rodapé). */
+  instagram: "https://www.instagram.com/todecarrothe/",
+  facebook: "https://www.facebook.com/todecarrothe/",
+
   /** TODO: dado real do cliente. Só dígitos, com DDI e DDD (ex.: 5586999990000). */
   whatsapp: "5586999990000",
 

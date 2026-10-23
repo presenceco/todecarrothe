@@ -126,13 +126,17 @@ function CartaoConsignacao({ c, href }: { c: Consignacao; href: string }) {
   );
 }
 
-const COLUNAS = "grid grid-cols-[80px_1.3fr_136px_1.6fr_84px_92px_1fr_92px_160px_40px] items-center gap-10 px-20";
+/**
+ * Colunas da tabela (38). Status com 156px: cabe a pílula mais longa ("Negócio fechado", 153px).
+ * A coluna Carro fica com a maior fração, para o modelo aparecer inteiro.
+ */
+const COLUNAS = "grid grid-cols-[72px_1.2fr_132px_1.8fr_80px_88px_1fr_76px_156px_40px] items-center gap-10 px-20";
 
 /** Tabela do desktop (38), com o status alterável na linha. A linha abre o painel do detalhe (39). */
 function TabelaConsignacoes({ linhas, filtros, rodape }: { linhas: Consignacao[]; filtros: FiltrosLista<StatusConsignacao>; rodape: React.ReactNode }) {
   return (
     <div className="overflow-x-auto rounded-16 border border-gray-150 bg-white">
-      <div role="table" aria-label="Consignações" className="min-w-[1040px]">
+      <div role="table" aria-label="Consignações" className="min-w-[1100px]">
         <div role="row" className={cn(COLUNAS, "h-45 border-b border-gray-150 bg-gray-25 text-14 font-semibold tracking-[0.06em] text-gray-500")}>
           <span role="columnheader">DATA</span>
           <span role="columnheader">CLIENTE</span>
@@ -162,11 +166,12 @@ function TabelaConsignacoes({ linhas, filtros, rodape }: { linhas: Consignacao[]
             <span role="cell">
               <EtiquetaForma forma={c.forma} />
             </span>
-            <div role="cell" className="flex min-w-0 items-center gap-12">
-              <MiniaturaConsignacao c={c} className="h-48 w-64 rounded-8 [&>span:last-child]:hidden" />
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{nomeCarro(c)}</p>
-                <p className="truncate text-14 text-gray-500">{c.versao || `${c.totalFotos} ${c.totalFotos === 1 ? "foto" : "fotos"}`}</p>
+            <div role="cell" className="flex min-w-0 items-center gap-10">
+              <MiniaturaConsignacao c={c} className="h-42 w-56 rounded-8 [&>span:last-child]:hidden" />
+              {/* Modelo inteiro na 1ª linha; marca e versão na 2ª (pode cortar). */}
+              <div className="min-w-0" title={[c.marca, c.modelo, c.versao].filter(Boolean).join(" ")}>
+                <p className="font-semibold break-words">{c.modelo}</p>
+                <p className="truncate text-14 text-gray-500">{[c.marca, c.versao].filter(Boolean).join(" · ")}</p>
               </div>
             </div>
             <span role="cell">{c.ano}</span>

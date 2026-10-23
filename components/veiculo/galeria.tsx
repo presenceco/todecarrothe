@@ -129,7 +129,7 @@ export function Galeria({ fotos, etiqueta, nome }: { fotos: readonly Foto[]; eti
                 aria-current={ativa ? "true" : undefined}
                 className={cn("pressable relative aspect-[4/3] overflow-hidden rounded-10 bg-hatch-sm", ativa && "shadow-ring-brand")}
               >
-                <Image src={foto.src} alt="" fill sizes="140px" className="object-cover" />
+                <Image src={foto.src} alt={foto.alt} fill sizes="140px" className="object-cover" />
                 {mais && (
                   <span className="absolute inset-0 flex items-center justify-center rounded-10 bg-black/60 text-15 font-bold text-white">
                     +{fotos.length - 6}
