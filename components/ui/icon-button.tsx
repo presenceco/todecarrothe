@@ -11,6 +11,8 @@ const VARIANTES = {
   bordered: "size-40 rounded-10 border border-gray-200 bg-white text-gray-700 hover:bg-gray-100",
   /** 48 px com borda (fechar o painel lateral do admin). */
   "bordered-lg": "size-48 rounded-10 border border-gray-150 bg-white hover:bg-gray-100",
+  /** 42px (40 + borda), fechar do painel da simulação (32). */
+  "bordered-md": "size-42 rounded-10 border border-gray-150 bg-white hover:bg-gray-100",
 } as const;
 
 type Estilo = {

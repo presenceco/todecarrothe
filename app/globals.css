@@ -179,6 +179,7 @@
   --color-info-bg: #e5eefb;
   --color-danger: #b42318;
   --color-danger-bg: #fde8e8;
+  --color-danger-hover: #912018;
 
   /* Fundos escurecidos atrás de painéis */
   --color-scrim: rgba(5, 8, 15, 0.6);
@@ -424,6 +425,32 @@
 
     .sheet[open][data-side="right"] .sheet-painel {
       transform: translateX(100%);
+    }
+  }
+
+  /* Painel inferior que vira caixa centralizada no desktop (confirmação de exclusão, tela 14). */
+  @media (min-width: 1024px) {
+    .sheet[data-centro] {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sheet[data-centro] .sheet-painel {
+      width: 440px;
+      border-radius: 20px;
+    }
+
+    .sheet[data-closing][data-centro] .sheet-painel {
+      transform: translateY(12px) scale(0.98);
+      opacity: 0;
+      transition-property: transform, opacity;
+    }
+
+    @starting-style {
+      .sheet[open][data-centro] .sheet-painel {
+        transform: translateY(12px) scale(0.98);
+        opacity: 0;
+      }
     }
   }
 

@@ -10,6 +10,7 @@ import type { UsuarioAdmin } from "./admin-sidebar";
 export function AdminMobileHeader({
   title,
   badge,
+  badgeDestaque,
   action,
   usuario,
   children,
@@ -18,6 +19,8 @@ export function AdminMobileHeader({
   title: string;
   /** Pílula ao lado do título ("38 veículos", "2 novos"). */
   badge?: string;
+  /** Pílula azul dos "novos" (16, 18); a do estoque é cinza-escura (12). */
+  badgeDestaque?: boolean;
   /** Botão à direita, antes do avatar (busca). */
   action?: React.ReactNode;
   usuario: UsuarioAdmin;
@@ -39,7 +42,14 @@ export function AdminMobileHeader({
           </h1>
           {badge && (
             <span className="flex h-48 items-center">
-              <span className="h-24 rounded-pill bg-ink-700 px-9 text-14 leading-24 font-semibold whitespace-nowrap text-silver">{badge}</span>
+              <span
+                className={cn(
+                  "h-24 rounded-pill px-9 text-14 leading-24 font-semibold whitespace-nowrap",
+                  badgeDestaque ? "bg-brand text-white" : "bg-ink-700 text-silver",
+                )}
+              >
+                {badge}
+              </span>
             </span>
           )}
         </div>

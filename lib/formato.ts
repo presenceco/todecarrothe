@@ -61,3 +61,16 @@ export function iniciais(nome: string) {
   if (partes.length === 1) return [...grafemas.segment(partes[0])].slice(0, 2).map((s) => s.segment).join("").toUpperCase();
   return (primeiroGrafema(partes[0]) + primeiroGrafema(partes.at(-1)!)).toUpperCase();
 }
+
+/** WhatsApp gravado só com dígitos → "(86) 99812-4471" (como nas telas do painel). */
+export function telefone(digitos: string) {
+  const d = digitos.replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "");
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return digitos;
+}
+
+/** Primeiro nome, para a saudação do WhatsApp ("Carlos Menezes" → "Carlos"). */
+export function primeiroNome(nome: string) {
+  return nome.trim().split(/\s+/)[0] ?? "";
+}

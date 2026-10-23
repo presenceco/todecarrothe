@@ -9,6 +9,8 @@ const PADDING_STATUS = {
   md: "px-10 py-5",
   /** 5px 11px (tabelas do admin desktop) */
   lg: "px-11 py-5",
+  /** 6px 11px (cartões de pedidos e simulações, telas 16 e 18) */
+  xl: "px-11 py-6",
 } as const;
 
 /** Selo de status com ponto ("● Disponível"). */

@@ -47,6 +47,59 @@ async function prepararPedido(page: Page, preencher: boolean) {
 /** As pranchas mostram o interruptor ligado sem os campos do carro da entrada; o app abre Modelo e Ano. */
 const INTERRUPTOR = "interruptor: a prancha o mostra ligado sem os campos; no app ligado abre Modelo e Ano (comparado desligado)";
 
+/** Login (11/26): e-mail da prancha preenchido e com foco. A senha não é digitada (área mascarada). */
+async function prepararLogin(page: Page) {
+  await page.locator("#campo-email").fill("contato@todecarro.com.br");
+  await page.waitForTimeout(300);
+}
+
+const SENHA = "senha: a prancha mostra 8 pontos; a comparação não digita senha";
+
+/** Navegação nova do admin: barra inferior e menu lateral têm "Consignações", ausente nas pranchas antigas. */
+const NAV_ADMIN = "navegação do admin: o app tem a aba nova “Consignações”";
+const CONTADORES = "contadores de novos: vêm do banco (envios de teste somam aos do seed)";
+
+/** Esconde os campos que não estão nas pranchas (marcados com data-novo), para não deslocar o resto. */
+async function esconderNovos(page: Page) {
+  await page.addStyleTag({ content: "[data-novo]{display:none!important}" });
+  await page.waitForTimeout(200);
+}
+
+/** Id de um veículo pelo slug (rotas do painel usam o id). Lê pela API pública: o veículo precisa estar no catálogo. */
+async function idVeiculo(slug: string) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const chave = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !chave) throw new Error("Rode com o .env.local (npm run comparar:telas) para resolver o id do veículo.");
+  const r = await fetch(`${url}/rest/v1/veiculos?select=id&slug=eq.${slug}`, { headers: { apikey: chave, Authorization: `Bearer ${chave}` } });
+  const [linha] = (await r.json()) as { id: string }[];
+  return linha.id;
+}
+
+/** Id de um item do painel pelo nome do cliente no seed (lê com a chave de serviço; só para a comparação local). */
+async function idPorNome(tabela: "pedidos_busca" | "simulacoes", nome: string) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !chave) throw new Error("Rode com o .env.local (npm run comparar:telas) para resolver o id.");
+  const r = await fetch(`${url}/rest/v1/${tabela}?select=id&nome=eq.${encodeURIComponent(nome)}&limit=1`, { headers: { apikey: chave, Authorization: `Bearer ${chave}` } });
+  const [linha] = (await r.json()) as { id: string }[];
+  return linha.id;
+}
+
+/** Abas e pílulas com contagem: vêm do banco (envios de teste somam aos do seed). */
+const CONTAGEM = "contagens: vêm do banco (envios de teste somam aos do seed)";
+const AVATAR = { x: 334, y: 12, w: 48, h: 48, motivo: "avatar: iniciais do usuário admin real" };
+const RODAPE_MENU = { x: 0, y: 830, w: 248, h: 70, motivo: "rodapé do menu: nome e papel do usuário admin real" };
+
+/** Esconde os envios de teste dos fluxos (nome "Teste Automatizado"), que não existem nas pranchas. */
+async function esconderTestes(page: Page) {
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll("article, [role=row]")) {
+      if (el.textContent?.includes("Teste Automatizado")) (el as HTMLElement).style.display = "none";
+    }
+  });
+  await page.waitForTimeout(200);
+}
+
 type Tela = Caso & { tela: string };
 
 const TELAS: Tela[] = [
@@ -169,6 +222,113 @@ const TELAS: Tela[] = [
     mascararFotos: true,
   },
   {
+    tela: "11",
+    nome: "11-login-mobile",
+    viewport: "mobile",
+    ref: "#n11 .dv-card",
+    rota: "/admin/login",
+    app: "body",
+    preparar: prepararLogin,
+    mascaras: [{ x: 37, y: 503, w: 260, h: 50, motivo: SENHA }],
+  },
+  {
+    tela: "12",
+    nome: "12-estoque-admin-mobile",
+    viewport: "mobile",
+    ref: "#n12 .dv-card",
+    rota: "/admin/estoque",
+    app: "body",
+    mascararFotos: true,
+    // Até o 8º cartão: a prancha mostra 8 e a barra inferior antiga (3 abas); o app lista 20 por página.
+    altura: 1194,
+    paginaInteira: true,
+    mascaras: [{ x: 334, y: 12, w: 48, h: 48, motivo: "avatar: iniciais do usuário admin real" }],
+    nota: "Compara cabeçalho e os 8 primeiros cartões.",
+  },
+  {
+    tela: "13",
+    nome: "13-acoes-veiculo-mobile",
+    viewport: "mobile",
+    ref: "#n13 .dv-card > :nth-child(4)",
+    rota: "/admin/estoque",
+    app: "dialog[open] .sheet-painel",
+    mascararFotos: true,
+    preparar: (p) => clicar(p, "article button[aria-label^='Ações de']"),
+  },
+  {
+    tela: "14",
+    nome: "14-excluir-veiculo-mobile",
+    viewport: "mobile",
+    ref: "#n14 .dv-card > :nth-child(4)",
+    rota: "/admin/estoque",
+    app: "dialog[open] .sheet-painel",
+    preparar: async (p) => {
+      await clicar(p, "article button[aria-label^='Ações de']");
+      await clicar(p, "dialog[open] button:has-text('Excluir')");
+    },
+  },
+  {
+    tela: "15",
+    nome: "15-editar-veiculo-mobile",
+    viewport: "mobile",
+    ref: "#n15 .dv-card",
+    rota: "/admin/estoque/{corolla}",
+    app: "body",
+    mascararFotos: true,
+    paginaInteira: true,
+    preparar: esconderNovos,
+    mascaras: [{ x: 17, y: 2088, w: 340, h: 50, motivo: "7º opcional: a prancha mobile pula para “Teto solar”; a desktop segue a ordem da lista" }],
+    nota: "Campos novos (Etiqueta no catálogo, Carroceria) ficam ocultos na comparação.",
+  },
+  {
+    tela: "16",
+    nome: "16-pedidos-mobile",
+    preparar: esconderTestes,
+    viewport: "mobile",
+    ref: "#n16 .dv-card",
+    rota: "/admin/pedidos",
+    app: "body",
+    altura: 760,
+    mascaras: [AVATAR, { x: 150, y: 20, w: 120, h: 32, motivo: CONTAGEM }, { x: 16, y: 72, w: 374, h: 48, motivo: CONTAGEM }],
+    nota: "Compara até o 3º cartão (a prancha corta ali; a barra inferior antiga tem 3 abas).",
+  },
+  {
+    tela: "17",
+    nome: "17-pedido-mobile",
+    viewport: "mobile",
+    ref: "#n17 .dv-card",
+    rota: "/admin/pedidos/{pedido}",
+    app: "body",
+    paginaInteira: true,
+  },
+  {
+    tela: "18",
+    nome: "18-simulacoes-mobile",
+    preparar: esconderTestes,
+    viewport: "mobile",
+    ref: "#n18 .dv-card",
+    rota: "/admin/simulacoes",
+    app: "body",
+    mascararFotos: true,
+    altura: 760,
+    mascaras: [
+      AVATAR,
+      { x: 16, y: 72, w: 374, h: 48, motivo: CONTAGEM },
+      { x: 186, y: 20, w: 84, h: 32, motivo: "pílula “N novas”: a prancha 18 a omite, a 16 mostra; o app mostra nas duas" },
+    ],
+    nota: "Compara até o 3º cartão.",
+  },
+  {
+    tela: "19",
+    nome: "19-simulacao-mobile",
+    viewport: "mobile",
+    ref: "#n19 .dv-card",
+    rota: "/admin/simulacoes/{simulacao}",
+    app: "body",
+    mascararFotos: true,
+    paginaInteira: true,
+  },
+  {
     tela: "21",
     nome: "21-estoque-desktop",
     viewport: "desktop",
@@ -225,6 +385,116 @@ const TELAS: Tela[] = [
     mascararFotos: true,
     mascaras: [{ x: 360, y: 0, w: 820, h: 84, motivo: NAV }],
   },
+  {
+    tela: "26",
+    nome: "26-login-desktop",
+    viewport: "desktop",
+    ref: "#n26 .dv-card",
+    rota: "/admin/login",
+    app: "body",
+    preparar: prepararLogin,
+    mascaras: [{ x: 871, y: 465, w: 360, h: 50, motivo: SENHA }],
+  },
+  {
+    tela: "27",
+    nome: "27-estoque-admin-desktop",
+    viewport: "desktop",
+    ref: "#n27 .dv-card",
+    rota: "/admin/estoque",
+    app: "body",
+    mascararFotos: true,
+    preparar: (p) => clicar(p, "[role=row] button[aria-label^='Mais ações']"),
+    mascaras: [
+      { x: 0, y: 275, w: 248, h: 60, motivo: NAV_ADMIN },
+      { x: 186, y: 180, w: 40, h: 90, motivo: CONTADORES },
+      { x: 0, y: 830, w: 248, h: 70, motivo: "rodapé do menu: nome e papel do usuário admin real" },
+    ],
+    // Até a 8ª linha: a prancha pagina de 8 em 8; o app, de 20 em 20 (dúvida 5).
+    altura: 803,
+    nota: "Compara até a 8ª linha da tabela.",
+  },
+  {
+    tela: "28",
+    nome: "28-editar-veiculo-desktop",
+    viewport: "desktop",
+    ref: "#n28 .dv-card",
+    rota: "/admin/estoque/{corolla}",
+    app: "body",
+    mascararFotos: true,
+    preparar: esconderNovos,
+    mascaras: [
+      { x: 0, y: 275, w: 248, h: 60, motivo: NAV_ADMIN },
+      { x: 186, y: 180, w: 40, h: 90, motivo: CONTADORES },
+      { x: 0, y: 700, w: 248, h: 800, motivo: "menu lateral: no app fica fixo na altura da tela; a prancha o estica até o fim da página" },
+      { x: 313, y: 288, w: 698, h: 186, motivo: "fotos: a prancha mostra uma foto sendo arrastada" },
+    ],
+    nota: "Campos novos (Etiqueta no catálogo, Carroceria) ficam ocultos na comparação.",
+  },
+  {
+    tela: "29",
+    nome: "29-pedidos-desktop",
+    preparar: esconderTestes,
+    viewport: "desktop",
+    ref: "#n29 .dv-card",
+    rota: "/admin/pedidos",
+    app: "body",
+    mascaras: [
+      { x: 0, y: 275, w: 248, h: 60, motivo: NAV_ADMIN },
+      { x: 186, y: 180, w: 40, h: 90, motivo: CONTADORES },
+      RODAPE_MENU,
+      { x: 620, y: 109, w: 540, h: 44, motivo: CONTAGEM },
+    ],
+    // A prancha tem 6 pedidos; o banco tem também o envio de teste (o 1º da lista).
+    altura: 682,
+    nota: "Compara até a 6ª linha.",
+  },
+  {
+    tela: "30",
+    nome: "30-pedido-desktop",
+    viewport: "desktop",
+    ref: "#n30 .dv-card",
+    rota: "/admin/pedidos/{pedido}",
+    app: "body",
+    mascaras: [
+      { x: 248, y: 0, w: 652, h: 900, motivo: "lista por baixo do painel: a prancha mostra uma versão simplificada" },
+      { x: 186, y: 180, w: 40, h: 90, motivo: CONTADORES },
+      { x: 0, y: 275, w: 248, h: 60, motivo: NAV_ADMIN },
+      RODAPE_MENU,
+    ],
+  },
+  {
+    tela: "31",
+    nome: "31-simulacoes-desktop",
+    preparar: esconderTestes,
+    viewport: "desktop",
+    ref: "#n31 .dv-card",
+    rota: "/admin/simulacoes",
+    app: "body",
+    mascararFotos: true,
+    mascaras: [
+      { x: 0, y: 275, w: 248, h: 60, motivo: NAV_ADMIN },
+      { x: 186, y: 180, w: 40, h: 90, motivo: CONTADORES },
+      RODAPE_MENU,
+      { x: 620, y: 109, w: 520, h: 44, motivo: CONTAGEM },
+    ],
+    altura: 787,
+    nota: "Compara até a 7ª linha.",
+  },
+  {
+    tela: "32",
+    nome: "32-simulacao-desktop",
+    viewport: "desktop",
+    ref: "#n32 .dv-card",
+    rota: "/admin/simulacoes/{simulacao}",
+    app: "body",
+    mascararFotos: true,
+    mascaras: [
+      { x: 248, y: 0, w: 652, h: 900, motivo: "lista por baixo do painel: a prancha mostra uma versão simplificada" },
+      { x: 186, y: 180, w: 40, h: 90, motivo: CONTADORES },
+      { x: 0, y: 275, w: 248, h: 60, motivo: NAV_ADMIN },
+      RODAPE_MENU,
+    ],
+  },
 ];
 
 const escolhidas = process.argv.slice(2);
@@ -239,8 +509,20 @@ try {
 
   for (const caso of casos) {
     // Página nova por tela: estado limpo (painéis fechados, rolagem no topo).
-    const appPage = await browser.newPage({ viewport: VIEWPORTS[caso.viewport], deviceScaleFactor: 1 });
-    await appPage.goto(APP_URL + (caso.rota ?? "/"), { waitUntil: "load" });
+    // Telas do painel (exceto o login) precisam de uma sessão de admin: SESSAO_ADMIN aponta para o estado do
+    // navegador gerado por scripts/tmp/sessao-admin.ts (fora do repositório).
+    const painel = caso.rota?.startsWith("/admin") && !caso.rota.startsWith("/admin/login");
+    const contexto = await browser.newContext({
+      viewport: VIEWPORTS[caso.viewport],
+      deviceScaleFactor: 1,
+      storageState: painel ? process.env.SESSAO_ADMIN : undefined,
+    });
+    const appPage = await contexto.newPage();
+    let rota = caso.rota ?? "/";
+    if (rota.includes("{pedido}")) rota = rota.replace("{pedido}", await idPorNome("pedidos_busca", "Carlos Menezes"));
+    if (rota.includes("{simulacao}")) rota = rota.replace("{simulacao}", await idPorNome("simulacoes", "Ana Paula Rocha"));
+    if (rota.includes("{corolla}")) rota = rota.replace("{corolla}", await idVeiculo("toyota-corolla-xei-2-0-2023"));
+    await appPage.goto(APP_URL + rota, { waitUntil: "load" });
     // Sem transições: elemento recém-animado fica numa camada própria do Chrome e o texto muda de antisserrilhado.
     await appPage.addStyleTag({ content: "*,*::before,*::after,::backdrop{transition:none!important;animation:none!important}" });
     await esperarPronto(appPage);
@@ -248,7 +530,7 @@ try {
     resultados.push(r);
     const tam = r.tamanhoRef.join() === r.tamanhoApp.join() ? "tamanho igual" : `ref ${r.tamanhoRef.join("×")} · app ${r.tamanhoApp.join("×")}`;
     console.log(`${(r.diferenca * 100).toFixed(2).padStart(6)}%  ${caso.nome.padEnd(26)} ${tam}`);
-    await appPage.close();
+    await contexto.close();
   }
 
   await escreverRelatorio(PASTA, "Comparação das telas", resultados);

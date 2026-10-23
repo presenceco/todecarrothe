@@ -21,6 +21,8 @@ type Props = {
   labelledBy?: string;
   /** Classes da caixa do painel (largura, altura, cor, raio, padding). */
   className?: string;
+  /** Painel inferior no mobile e caixa de 440px no centro da tela no desktop (confirmações). */
+  centroNoDesktop?: boolean;
   children: React.ReactNode;
 };
 
@@ -28,7 +30,7 @@ const SAIDA_MS = 200;
 const VELOCIDADE_FECHAR = 0.11; // px/ms
 const FRACAO_FECHAR = 0.25;
 
-export function Sheet({ open, onClose, side = "bottom", label, labelledBy, className, children }: Props) {
+export function Sheet({ open, onClose, side = "bottom", label, labelledBy, className, centroNoDesktop, children }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const painelRef = useRef<HTMLDivElement>(null);
   const [fechando, setFechando] = useState(false);
@@ -65,6 +67,8 @@ export function Sheet({ open, onClose, side = "bottom", label, labelledBy, class
     // No painel inferior, só a alça e o título arrastam ([data-sheet-drag]); o conteúdo rola.
     // Na gaveta lateral, qualquer área livre arrasta na horizontal (a vertical fica com a rolagem).
     if (side === "bottom" && !alvo.closest("[data-sheet-drag]")) return;
+    // Centralizado no desktop não arrasta.
+    if (centroNoDesktop && matchMedia("(min-width: 1024px)").matches) return;
     arrasto.current = { id: e.pointerId, inicio: eixo === "Y" ? e.clientY : e.clientX, t0: performance.now(), delta: 0 };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
@@ -103,6 +107,7 @@ export function Sheet({ open, onClose, side = "bottom", label, labelledBy, class
       aria-label={label}
       aria-labelledby={labelledBy}
       data-side={side}
+      data-centro={centroNoDesktop || undefined}
       data-closing={fechando || undefined}
       onCancel={(e) => {
         e.preventDefault();

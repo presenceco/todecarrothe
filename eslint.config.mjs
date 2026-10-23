@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Scripts descartáveis de inspeção (fora do repositório).
+    "scripts/tmp/**",
   ]),
 ]);
 

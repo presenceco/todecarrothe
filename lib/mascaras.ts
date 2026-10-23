@@ -82,3 +82,20 @@ export function idade(nascimentoIso: string, hoje = new Date()) {
   if (hoje.getMonth() + 1 < m || (hoje.getMonth() + 1 === m && hoje.getDate() < d)) anos--;
   return anos;
 }
+
+/** Reais inteiros, sem centavos (preço do veículo): "129900" → "129.900". */
+export function mascaraReais(valor: string) {
+  const d = digitos(valor).replace(/^0+(?=\d)/, "").slice(0, 9);
+  return d ? new Intl.NumberFormat("pt-BR").format(Number(d)) : "";
+}
+
+/**
+ * Quilometragem com o "km" no próprio campo (cadastro, telas 15/28): "38000" → "38.000 km".
+ * Apagar o "m" do sufixo apaga o último dígito, para o campo não travar no backspace.
+ */
+export function mascaraKmSufixo(novo: string, anterior: string) {
+  let d = digitos(novo);
+  if (novo.length < anterior.length && d === digitos(anterior)) d = d.slice(0, -1);
+  const numero = mascaraKm(d);
+  return numero ? `${numero} km` : "";
+}

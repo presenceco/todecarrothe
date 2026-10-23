@@ -42,3 +42,6 @@ desktop.ini
 
 # Cópia original do bundle das telas (a versão usada pelo projeto é referencias/telas.html)
 /Catálogo Tô de Carro (32 telas).html
+
+# scripts descartáveis de inspeção
+/scripts/tmp/

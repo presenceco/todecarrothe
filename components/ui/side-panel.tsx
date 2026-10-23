@@ -17,6 +17,7 @@ export function SidePanel({
   footer,
   children,
   className,
+  closeVariant = "bordered-lg",
 }: {
   /** id do título dentro de `header` (nome do painel para leitores de tela). */
   titleId: string;
@@ -25,6 +26,8 @@ export function SidePanel({
   footer?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  /** Tamanho do botão de fechar: 48px (30) ou 42px (32). */
+  closeVariant?: "bordered-lg" | "bordered-md";
 }) {
   return (
     <div className={cn("side-panel fixed inset-0 left-248 z-40", className)}>
@@ -38,7 +41,7 @@ export function SidePanel({
         <PanelKeyboard closeHref={closeHref} />
         <div className="flex items-start justify-between gap-16 border-b border-gray-120 px-28 pt-24 pb-20">
           <div className="min-w-0 flex-1">{header}</div>
-          <IconLink href={closeHref} scroll={false} icon="close" label="Fechar" variant="bordered-lg" />
+          <IconLink href={closeHref} scroll={false} icon="close" label="Fechar" variant={closeVariant} />
         </div>
         <div className="flex flex-1 flex-col gap-20 overflow-y-auto overscroll-contain px-28 py-20">{children}</div>
         {footer && <div className="border-t border-gray-120 px-28 pt-16 pb-24">{footer}</div>}
