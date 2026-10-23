@@ -2,7 +2,8 @@
  * Atalhos da CLI do Supabase para o projeto na nuvem, lendo o .env.local.
  *
  *   npm run db:link     liga esta pasta ao projeto (usa a URL e a senha do banco do .env.local)
- *   npm run db:push     aplica as migrations novas e o seed (supabase/seed.sql)
+ *   npm run db:push     aplica as migrations novas e o seed (supabase/seed.sql) — só na criação do banco
+ *   npm run db:migrar   aplica só as migrations novas, sem o seed (para o banco que já está em uso)
  *   npm run db:config   envia as configurações de login de supabase/config.toml (cadastro público desligado…)
  *   npm run db:tipos    gera lib/supabase/tipos-banco.ts a partir do banco
  *
@@ -41,6 +42,9 @@ switch (comando) {
   case "push":
     supabase(["db", "push", "--include-seed", "--yes", "--password", exigir("SUPABASE_DB_PASSWORD")]);
     break;
+  case "migrar":
+    supabase(["db", "push", "--yes", "--password", exigir("SUPABASE_DB_PASSWORD")]);
+    break;
   case "config":
     supabase(["config", "push", "--project-ref", ref, "--yes"]);
     break;
@@ -52,6 +56,6 @@ switch (comando) {
     break;
   }
   default:
-    console.error("Uso: node --env-file=.env.local scripts/supabase.ts link | push | config | tipos");
+    console.error("Uso: node --env-file=.env.local scripts/supabase.ts link | push | migrar | config | tipos");
     process.exit(1);
 }

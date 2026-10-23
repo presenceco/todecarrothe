@@ -29,6 +29,8 @@ export type Simulacao = {
   renda: number;
   entrada: number;
   prazo: number;
+  /** Parcela mensal que o cliente busca (opcional). */
+  parcela: number | null;
   temTroca: boolean;
   trocaModelo: string | null;
   trocaAno: number | null;
@@ -41,7 +43,7 @@ export type Simulacao = {
 };
 
 const CAMPOS =
-  "id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, veiculo_fotos (path, ordem))";
+  "id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, veiculo_fotos (path, ordem))";
 
 type Linha = {
   id: string;
@@ -52,6 +54,7 @@ type Linha = {
   renda: number;
   entrada: number;
   prazo_meses: number;
+  parcela_desejada: number | null;
   tem_troca: boolean;
   troca_modelo: string | null;
   troca_ano: number | null;
@@ -85,6 +88,7 @@ function paraSimulacao(l: Linha): Simulacao {
     renda: Number(l.renda),
     entrada: Number(l.entrada),
     prazo: l.prazo_meses,
+    parcela: l.parcela_desejada === null ? null : Number(l.parcela_desejada),
     temTroca: l.tem_troca,
     trocaModelo: l.troca_modelo,
     trocaAno: l.troca_ano,
@@ -168,6 +172,7 @@ export function textoSimulacao(s: Simulacao) {
     "",
     `Entrada: ${moeda(s.entrada)}`,
     `Prazo: ${s.prazo} meses`,
+    `Parcela que busca: ${s.parcela ? moeda(s.parcela) : "não informada"}`,
     `Troca: ${s.temTroca ? `Sim, ${s.trocaModelo ?? ""}${s.trocaAno ? ` ${s.trocaAno}` : ""}`.trim() : "Não"}`,
     "",
     s.consentimento ? "Autorizou o uso dos dados para simulação de crédito." : "",

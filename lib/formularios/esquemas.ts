@@ -94,6 +94,8 @@ export function esquemaSimulacao(precoVeiculo: number | null) {
         .string()
         .transform((v) => moedaParaNumero(v) ?? 0),
       prazo: z.enum(["24", "36", "48", "60"], { error: "Escolha o prazo." }).transform(Number),
+      // Parcela mensal que o cliente busca (opcional).
+      parcela: dinheiroOpcional,
       temTroca: simNao("Responda se tem veículo para dar na troca."),
       trocaModelo: z.string().trim().max(80).optional(),
       trocaAno: anoTroca,
@@ -111,6 +113,10 @@ export function esquemaSimulacao(precoVeiculo: number | null) {
           message: precoVeiculo !== null ? "A entrada não pode passar do preço do veículo." : "A entrada não pode passar do valor do carro.",
         });
       }
+      // A parcela não pode passar do valor a financiar (preço menos entrada).
+      if (limite !== null && d.parcela !== null && d.parcela > Math.max(0, limite - d.entrada)) {
+        ctx.addIssue({ code: "custom", path: ["parcela"], message: "A parcela não pode passar do valor a financiar." });
+      }
     });
 }
 
@@ -123,6 +129,7 @@ export type CamposSimulacao = {
   valorAproximado: string;
   entrada: string;
   prazo: string;
+  parcela: string;
   temTroca: string;
   trocaModelo: string;
   trocaAno: string;
@@ -142,6 +149,9 @@ export const FAIXAS_PRECO = [
   { value: "acima_200", label: "Acima de R$ 200 mil" },
 ] as const;
 
+/** Quantidade de parcelas do pedido de busca financiado. */
+export const PRAZOS_PEDIDO = [12, 24, 36, 48, 60] as const;
+
 export const esquemaPedido = z
   .object({
     nome,
@@ -153,13 +163,22 @@ export const esquemaPedido = z
       .transform(Number),
     faixa: z.enum(FAIXAS_PRECO.map((f) => f.value) as [string, ...string[]], { error: "Escolha a faixa de preço." }),
     pagamento: z.enum(["a_vista", "financiado"], { error: "Escolha a forma de pagamento." }),
+    // Só com "Financiado" (opcionais): em quantas vezes, entrada e o valor de parcela que busca.
+    prazo: z
+      .enum(["", ...PRAZOS_PEDIDO.map(String)] as [string, ...string[]])
+      .optional()
+      .transform((v) => (v ? Number(v) : null)),
+    entrada: dinheiroOpcional,
+    parcela: dinheiroOpcional,
     temTroca: z.boolean(),
     trocaModelo: z.string().trim().max(80).optional(),
     trocaAno: anoTroca,
     autorizado,
     site: isca,
   })
-  .superRefine(validarTroca);
+  .superRefine(validarTroca)
+  // À vista: descarta prazo, entrada e parcela que tenham ficado preenchidos antes de trocar a forma de pagamento.
+  .transform((d) => (d.pagamento === "financiado" ? d : { ...d, prazo: null, entrada: null, parcela: null }));
 
 export type CamposPedido = {
   nome: string;
@@ -168,6 +187,9 @@ export type CamposPedido = {
   anoMinimo: string;
   faixa: string;
   pagamento: string;
+  prazo: string;
+  entrada: string;
+  parcela: string;
   temTroca: boolean;
   trocaModelo: string;
   trocaAno: string;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { loja } from "@/lib/loja";
+import { linkWhatsappLoja, loja } from "@/lib/loja";
 import { AnoAtual } from "./ano-atual";
 import { Simbolo } from "./logo";
 
@@ -11,6 +11,20 @@ function IconeInstagram() {
       <rect x="3" y="3" width="18" height="18" rx="5" />
       <circle cx="12" cy="12" r="4.2" />
       <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Ícone do WhatsApp (balão com telefone, 22px, cor do texto). */
+function IconeWhatsapp() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+      <path d="M4.2 20.1 5.3 16.3A8.6 8.6 0 1 1 8.1 19Z" />
+      <path
+        d="M9.2 7.9c.3-.3.8-.3 1 .1l.8 1.6c.1.3.1.6-.1.8l-.5.6c.6 1.2 1.6 2.2 2.8 2.8l.6-.5c.2-.2.5-.2.8-.1l1.6.8c.4.2.4.7.1 1l-.7.7c-.5.5-1.2.6-1.8.4-2.4-.9-4.3-2.8-5.2-5.2-.2-.6-.1-1.3.4-1.8Z"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }
@@ -34,9 +48,13 @@ function IconeFacebook() {
   );
 }
 
+/** Mensagem pronta do WhatsApp do rodapé. */
+const MENSAGEM_RODAPE = "Olá! Vim pelo site da Tô de Carro e gostaria de mais informações.";
+
 const REDES = [
   { href: loja.instagram, rotulo: `Instagram da ${loja.marcaRodape}`, Icone: IconeInstagram },
   { href: loja.facebook, rotulo: `Facebook da ${loja.marcaRodape}`, Icone: IconeFacebook },
+  { href: linkWhatsappLoja(MENSAGEM_RODAPE), rotulo: `WhatsApp da ${loja.marcaRodape}`, Icone: IconeWhatsapp },
 ];
 
 /**
@@ -51,7 +69,7 @@ export function SiteFooter({ className }: { className?: string }) {
           <Simbolo className="size-30 flex-none lg:size-36" />
           {/* Uma string só: texto partido em vários nós pode perder o kerning entre eles. */}
           <span className="min-w-0 flex-1">{`${loja.nome} · ${loja.cidade}`}</span>
-          <nav aria-label="Redes sociais" className="-my-9 -mr-12 flex flex-none">
+          <nav aria-label="Redes sociais e WhatsApp" className="-my-9 -mr-12 flex flex-none">
             {REDES.map(({ href, rotulo, Icone }) => (
               <a
                 key={href}

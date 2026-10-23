@@ -1,8 +1,7 @@
 /**
- * Dados da loja usados no site inteiro (header, menu, rodapé, "A loja", confirmações, WhatsApp).
+ * Dados da loja usados no site inteiro (header, menu, rodapé, "Onde estamos", confirmações, WhatsApp).
  *
- * TODO: dado real do cliente. Os valores abaixo vieram das telas de aprovação e são EXEMPLO:
- * não podem ir para produção. Troque cada campo marcado antes do deploy.
+ * Dados confirmados pelo cliente em 23/10/2026. Só a política de privacidade ainda falta (TODO abaixo).
  */
 export const loja = {
   nome: "Tô de Carro Seminovos",
@@ -15,43 +14,39 @@ export const loja = {
   instagram: "https://www.instagram.com/todecarrothe/",
   facebook: "https://www.facebook.com/todecarrothe/",
 
-  /** TODO: dado real do cliente. Só dígitos, com DDI e DDD (ex.: 5586999990000). */
-  whatsapp: "5586999990000",
+  /**
+   * WhatsApp da loja: (86) 99477-5158. Só dígitos, com DDI e DDD. Todos os botões de WhatsApp do site
+   * (topo, menu, "Tenho interesse", confirmações, "Onde estamos", rodapé) usam este número.
+   */
+  whatsapp: "5586994775158",
 
-  /** TODO: dado real do cliente. */
-  email: "contato@todecarro.com.br",
+  email: "todecarrothe@gmail.com",
 
-  /** TODO: dado real do cliente. Duas linhas, como no menu (tela 09) e em "A loja" (tela 10). */
-  endereco: {
-    linha1: "Av. Frei Serafim, 2150 · Centro",
-    linha2: "Teresina-PI",
-  },
+  /**
+   * Não é loja própria: o corretor atende no Show Automall. Uma linha por item, no menu (tela 09) e em
+   * "Onde estamos" (tela 10).
+   */
+  endereco: ["Show Automall", "Av. João XXIII, 5335", "Santa Isabel · Teresina-PI"],
 
-  /** TODO: dado real do cliente. Link "Como chegar" (Google Maps). */
-  mapaUrl: "https://www.google.com/maps/search/?api=1&query=Av.+Frei+Serafim,+2150,+Teresina+-+PI",
+  /** Link "Como chegar" (Google Maps), pela busca do Show Automall. */
+  mapaUrl: "https://www.google.com/maps/search/?api=1&query=Show+Auto+Mall,+Av.+Jo%C3%A3o+XXIII,+5335,+Teresina+-+PI",
 
-  /** TODO: dado real do cliente. Uma linha por período (telas 09 e 10). */
+  /** Uma linha por período (telas 09 e 10). */
   horario: ["Seg a sex · 8h às 18h", "Sábado · 8h às 13h"],
 
-  /** TODO: dado real do cliente. Frase das confirmações (telas 06 e 34). */
+  /** Frase das confirmações (telas 06 e 34). */
   horarioResposta: "Respondemos em horário comercial: seg a sex, 8h às 18h · sábado, 8h às 13h",
 
-  /** TODO: dado real do cliente. Texto da página "A loja" (telas 10 e 25). */
+  /** Texto da página "Onde estamos" (telas 10 e 25). */
   sobre:
-    "Seminovos revisados e com procedência, no Centro de Teresina. Atendimento direto com o dono e financiamento com os principais bancos.",
+    "Seminovos revisados e com procedência, com atendimento no Show Automall, em Teresina. Atendimento direto com o corretor e financiamento com os principais bancos.",
 
   /**
-   * TODO: dado real do cliente. Foto da fachada (4:3), em public/loja/. Enquanto for null, a página mostra a
-   * área hachurada das telas.
-   */
-  fotoFachada: null as string | null,
-
-  /**
-   * TODO: dado real do cliente. Imagem estática do mapa (print do Google Maps, ~1200×440), em public/loja/.
+   * Foto do local (4:3 na página "Onde estamos"), em public/loja/, com o pino no centro: o toque abre `mapaUrl`.
    * Não embutimos o Google Maps: ele carrega rastreadores e cookies de terceiros (decisão do cliente).
-   * O toque no mapa abre `mapaUrl`.
+   * Com null, a página mostra a área hachurada das telas.
    */
-  imagemMapa: null as string | null,
+  fotoFachada: "/loja/show-automall-fachada.webp" as string | null,
 
   /**
    * TODO: dado real do cliente. Texto da política de privacidade, um parágrafo por item (a loja define com

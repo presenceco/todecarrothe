@@ -74,9 +74,12 @@ export function SiteMenu() {
           <p className="relative flex gap-12 text-15 leading-145 text-silver">
             <Icon name="location_on" size={20} className="text-brand-300" />
             <span>
-              {loja.endereco.linha1}
-              <br />
-              {loja.endereco.linha2}
+              {loja.endereco.map((linha, i) => (
+                <span key={linha}>
+                  {i > 0 && <br />}
+                  {linha}
+                </span>
+              ))}
             </span>
           </p>
           <p className="relative flex gap-12 text-15 leading-145 text-silver">

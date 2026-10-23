@@ -37,7 +37,7 @@ export function SiteHeader({ soDesktop = false }: { /** Páginas com barra próp
       </div>
 
       {/* Desktop */}
-      <div className="mx-auto hidden h-84 max-w-page items-center gap-32 px-32 lg:flex xl:px-64 min-[1440px]:gap-48">
+      <div className="mx-auto hidden h-84 max-w-page items-center gap-16 px-32 lg:flex xl:gap-32 xl:px-64 min-[1440px]:gap-48">
         <Link href="/" aria-label="Tô de Carro Seminovos, início" className="pressable flex-none">
           <Logo size="desktop" />
         </Link>

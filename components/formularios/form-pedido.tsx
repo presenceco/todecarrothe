@@ -4,9 +4,9 @@ import { OptionGroup } from "@/components/ui/option-group";
 import { SelectField, type OpcaoSelect } from "@/components/ui/select-field";
 import { Switch } from "@/components/ui/switch";
 import { enviarPedido } from "@/lib/formularios/acoes";
-import { errosPorCampo, esquemaPedido, FAIXAS_PRECO, type CamposPedido } from "@/lib/formularios/esquemas";
+import { errosPorCampo, esquemaPedido, FAIXAS_PRECO, PRAZOS_PEDIDO, type CamposPedido } from "@/lib/formularios/esquemas";
 import { TEXTO_CONSENTIMENTO } from "@/lib/consentimento";
-import { mascaraAno, mascaraWhatsapp } from "@/lib/mascaras";
+import { mascaraAno, mascaraMoeda, mascaraWhatsapp } from "@/lib/mascaras";
 import { AvisoGeral, Autorizacao, CampoIsca, CampoMascara, ErroGrupo, RodapeEnvio } from "./partes";
 import { useFormulario } from "./use-formulario";
 
@@ -17,12 +17,17 @@ const VAZIO: CamposPedido = {
   anoMinimo: "",
   faixa: "",
   pagamento: "",
+  prazo: "",
+  entrada: "",
+  parcela: "",
   temTroca: false,
   trocaModelo: "",
   trocaAno: "",
   autorizado: false,
   site: "",
 };
+
+const PRAZOS = PRAZOS_PEDIDO.map((m) => ({ value: String(m), label: `${m}x` }));
 
 const PAGAMENTOS = [
   { value: "a_vista", label: "À vista" },
@@ -49,7 +54,7 @@ export function FormPedido({ anos }: { anos: readonly OpcaoSelect[] }) {
     });
   }
 
-  const campo = (nome: "nome" | "whatsapp" | "marcaModelo" | "trocaModelo" | "trocaAno") => ({
+  const campo = (nome: "nome" | "whatsapp" | "marcaModelo" | "trocaModelo" | "trocaAno" | "entrada" | "parcela") => ({
     name: nome,
     value: c[nome],
     onValor: (v: string) => definir(nome, v),
@@ -100,6 +105,53 @@ export function FormPedido({ anos }: { anos: readonly OpcaoSelect[] }) {
             />
             <ErroGrupo id="campo-pagamento-erro" mensagem={erros.pagamento} />
           </div>
+          {/* Financiado: em quantas vezes, entrada e valor da parcela (opcionais; pedido do cliente, fora das telas 07/24). */}
+          {c.pagamento === "financiado" && (
+            <div data-novo="" className="flex flex-col gap-14 lg:col-span-2 lg:grid lg:grid-cols-2 lg:gap-16">
+              <div className="lg:col-span-2">
+                <OptionGroup
+                  name="prazo"
+                  legend={
+                    <>
+                      Em quantas vezes? <span className="font-normal text-gray-500">(opcional)</span>
+                    </>
+                  }
+                  legendClassName="mb-6 text-14 font-semibold text-gray-700"
+                  textSize={15}
+                  options={PRAZOS}
+                  value={c.prazo}
+                  onValueChange={(v) => definir("prazo", v)}
+                  invalid={!!erros.prazo}
+                  className="grid grid-cols-[repeat(5,1fr)] gap-8"
+                  itemClassName="lg:h-52"
+                />
+                <ErroGrupo id="campo-prazo-erro" mensagem={erros.prazo} />
+              </div>
+              <CampoMascara
+                {...campo("entrada")}
+                label={
+                  <>
+                    Valor de entrada <span className="font-normal text-gray-500">(opcional)</span>
+                  </>
+                }
+                placeholder="R$ 0,00"
+                inputMode="numeric"
+                mascara={mascaraMoeda}
+              />
+              <CampoMascara
+                {...campo("parcela")}
+                label={
+                  <>
+                    Valor da parcela <span className="font-normal text-gray-500">(opcional)</span>
+                  </>
+                }
+                hint="Quanto cabe no seu bolso por mês"
+                placeholder="R$ 0,00"
+                inputMode="numeric"
+                mascara={mascaraMoeda}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-14 border-t border-gray-100 pt-12 lg:gap-16 lg:pt-16">

@@ -29,7 +29,8 @@ export const NAV_SITE: readonly ItemSite[] = [
     ativoEm: ["/nao-encontrou"],
   },
   { href: "/venda-seu-carro", rotuloDesktop: "Venda seu carro", rotuloMenu: "Venda seu carro", icone: "sell", ativoEm: ["/venda-seu-carro"] },
-  { href: "/a-loja", rotuloDesktop: "A loja", rotuloMenu: "A loja", icone: "storefront", ativoEm: ["/a-loja"] },
+  // Era "A loja": o corretor não tem loja própria, atende no Show Automall. A URL continua /a-loja.
+  { href: "/a-loja", rotuloDesktop: "Onde estamos", rotuloMenu: "Onde estamos", icone: "location_on", ativoEm: ["/a-loja"] },
 ];
 
 export type ChaveContador = "pedidos" | "simulacoes" | "consignacoes";

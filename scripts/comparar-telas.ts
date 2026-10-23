@@ -30,6 +30,10 @@ async function prepararSimulacao(page: Page, nome: boolean) {
     await page.locator(`label:has(input[name='${campo}'][value='${valor}'])`).click();
   }
   if (nome) await page.locator("#campo-nome").fill("Ana Paula Rocha");
+  // Campo novo ("Parcela que você busca") fora das pranchas.
+  await page.addStyleTag({ content: "[data-novo]{display:none!important}" });
+  // Os cliques rolam a página; volta ao topo para a coluna fixa do veículo (23) ficar no lugar.
+  await page.evaluate(() => scrollTo(0, 0));
   await page.waitForTimeout(300);
 }
 
@@ -41,6 +45,8 @@ async function prepararPedido(page: Page, preencher: boolean) {
     await page.locator("#campo-whatsapp").fill("86998124471");
     await page.locator("#campo-marcaModelo").focus();
   }
+  // Campos novos do financiado (parcelas e valor da parcela) fora das pranchas.
+  await page.addStyleTag({ content: "[data-novo]{display:none!important}" });
   await page.waitForTimeout(300);
 }
 

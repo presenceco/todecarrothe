@@ -17,6 +17,7 @@ const VAZIO: CamposSimulacao = {
   valorAproximado: "",
   entrada: "",
   prazo: "",
+  parcela: "",
   temTroca: "",
   trocaModelo: "",
   trocaAno: "",
@@ -110,6 +111,21 @@ export function FormSimulacao({ veiculo }: { veiculo: { slug: string; preco: num
               className="grid grid-cols-[repeat(4,1fr)] gap-8"
             />
             <ErroGrupo id="campo-prazo-erro" mensagem={erros.prazo} />
+          </div>
+          {/* Parcela que o cliente busca (pedido do cliente, fora das telas; data-novo: fora da comparação visual). */}
+          <div data-novo="">
+            <CampoMascara
+              {...campo("parcela")}
+              label={
+                <>
+                  Parcela que você busca <span className="font-normal text-gray-500">(opcional)</span>
+                </>
+              }
+              hint="Quanto cabe no seu bolso por mês"
+              placeholder="R$ 0,00"
+              inputMode="numeric"
+              mascara={mascaraMoeda}
+            />
           </div>
         </div>
       </CartaoForm>

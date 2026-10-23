@@ -17,6 +17,7 @@
     "db:gerar-seed": "node scripts/gerar-seed.ts",
     "db:link": "node --env-file=.env.local scripts/supabase.ts link",
     "db:push": "node --env-file=.env.local scripts/supabase.ts push",
+    "db:migrar": "node --env-file=.env.local scripts/supabase.ts migrar",
     "db:config": "node --env-file=.env.local scripts/supabase.ts config",
     "db:tipos": "node --env-file=.env.local scripts/supabase.ts tipos",
     "db:fotos": "node --env-file=.env.local scripts/seed-fotos.ts",

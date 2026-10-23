@@ -168,11 +168,14 @@ export type Database = {
           consentimento_em: string
           consentimento_versao: string
           created_at: string
+          entrada: number | null
           faixa_preco: string
           id: string
           marca_modelo: string
           nome: string
           pagamento: string
+          parcela_desejada: number | null
+          prazo_meses: number | null
           status: string
           tem_troca: boolean
           troca_ano: number | null
@@ -186,11 +189,14 @@ export type Database = {
           consentimento_em: string
           consentimento_versao: string
           created_at?: string
+          entrada?: number | null
           faixa_preco: string
           id?: string
           marca_modelo: string
           nome: string
           pagamento: string
+          parcela_desejada?: number | null
+          prazo_meses?: number | null
           status?: string
           tem_troca: boolean
           troca_ano?: number | null
@@ -204,11 +210,14 @@ export type Database = {
           consentimento_em?: string
           consentimento_versao?: string
           created_at?: string
+          entrada?: number | null
           faixa_preco?: string
           id?: string
           marca_modelo?: string
           nome?: string
           pagamento?: string
+          parcela_desejada?: number | null
+          prazo_meses?: number | null
           status?: string
           tem_troca?: boolean
           troca_ano?: number | null
@@ -228,6 +237,7 @@ export type Database = {
           id: string
           nascimento: string
           nome: string
+          parcela_desejada: number | null
           possui_cnh: boolean
           prazo_meses: number
           renda: number
@@ -251,6 +261,7 @@ export type Database = {
           id?: string
           nascimento: string
           nome: string
+          parcela_desejada?: number | null
           possui_cnh: boolean
           prazo_meses: number
           renda: number
@@ -274,6 +285,7 @@ export type Database = {
           id?: string
           nascimento?: string
           nome?: string
+          parcela_desejada?: number | null
           possui_cnh?: boolean
           prazo_meses?: number
           renda?: number

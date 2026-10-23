@@ -8,7 +8,7 @@ import { BASE_PEDIDOS, ListaPedidos, OPCOES_STATUS_PEDIDO, whatsappPedido } from
 import { hrefLista, lerFiltrosLista } from "@/lib/admin/filtros";
 import { listarPedidos, obterPedido, rotuloFaixa, rotuloPagamento, STATUS_PEDIDOS, textoPedido } from "@/lib/admin/pedidos";
 import { contarNovos, exigirAdmin } from "@/lib/admin/sessao";
-import { dataHora, telefone } from "@/lib/formato";
+import { dataHora, moeda, telefone } from "@/lib/formato";
 
 export const metadata: Metadata = { title: "Pedido de busca" };
 
@@ -33,7 +33,15 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
     { rotulo: "Marca / modelo", valor: p.marcaModelo, largo: true },
     { rotulo: "Ano mínimo", valor: p.anoMinimo },
     { rotulo: "Faixa de preço", valor: rotuloFaixa(p.faixa) },
-    { rotulo: "Forma de pagamento", valor: rotuloPagamento(p.pagamento), largo: true },
+    { rotulo: "Forma de pagamento", valor: rotuloPagamento(p.pagamento), largo: p.pagamento !== "financiado" },
+    // Financiado: quantidade de parcelas, entrada e valor de parcela que o cliente busca (opcionais).
+    ...(p.pagamento === "financiado"
+      ? [
+          { rotulo: "Parcelas", valor: p.prazo ? `${p.prazo}x` : "Não informado" },
+          { rotulo: "Entrada", valor: p.entrada ? moeda(p.entrada) : "Não informada" },
+          { rotulo: "Valor da parcela", valor: p.parcela ? moeda(p.parcela) : "Não informado" },
+        ]
+      : []),
   ];
   const troca: ItemDetalhe[] = p.temTroca
     ? [

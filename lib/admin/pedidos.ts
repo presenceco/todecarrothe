@@ -1,5 +1,5 @@
 import "server-only";
-import { dataHora, telefone } from "@/lib/formato";
+import { dataHora, moeda, telefone } from "@/lib/formato";
 import { FAIXAS_PRECO } from "@/lib/formularios/esquemas";
 import { STATUS_PEDIDO, type StatusPedido } from "@/lib/status";
 import { POR_PAGINA, termoBusca, type FiltrosLista } from "./filtros";
@@ -15,6 +15,10 @@ export type Pedido = {
   anoMinimo: number;
   faixa: string;
   pagamento: "a_vista" | "financiado";
+  /** Só no financiado (opcionais): quantidade de parcelas, entrada e valor de parcela que busca. */
+  prazo: number | null;
+  entrada: number | null;
+  parcela: number | null;
   temTroca: boolean;
   trocaModelo: string | null;
   trocaAno: number | null;
@@ -23,7 +27,7 @@ export type Pedido = {
   criadoEm: string;
 };
 
-const CAMPOS = "id, nome, whatsapp, marca_modelo, ano_minimo, faixa_preco, pagamento, tem_troca, troca_modelo, troca_ano, anotacoes, status, created_at";
+const CAMPOS = "id, nome, whatsapp, marca_modelo, ano_minimo, faixa_preco, pagamento, prazo_meses, entrada, parcela_desejada, tem_troca, troca_modelo, troca_ano, anotacoes, status, created_at";
 
 type Linha = {
   id: string;
@@ -33,6 +37,9 @@ type Linha = {
   ano_minimo: number;
   faixa_preco: string;
   pagamento: string;
+  prazo_meses: number | null;
+  entrada: number | null;
+  parcela_desejada: number | null;
   tem_troca: boolean;
   troca_modelo: string | null;
   troca_ano: number | null;
@@ -50,6 +57,9 @@ function paraPedido(l: Linha): Pedido {
     anoMinimo: l.ano_minimo,
     faixa: l.faixa_preco,
     pagamento: l.pagamento as Pedido["pagamento"],
+    prazo: l.prazo_meses,
+    entrada: l.entrada === null ? null : Number(l.entrada),
+    parcela: l.parcela_desejada === null ? null : Number(l.parcela_desejada),
     temTroca: l.tem_troca,
     trocaModelo: l.troca_modelo,
     trocaAno: l.troca_ano,
@@ -117,6 +127,13 @@ export function textoPedido(p: Pedido) {
     `Ano mínimo: ${p.anoMinimo}`,
     `Faixa de preço: ${rotuloFaixa(p.faixa)}`,
     `Pagamento: ${rotuloPagamento(p.pagamento)}`,
+    ...(p.pagamento === "financiado"
+      ? [
+          `Parcelas: ${p.prazo ? `${p.prazo}x` : "não informado"}`,
+          `Entrada: ${p.entrada ? moeda(p.entrada) : "não informada"}`,
+          `Valor da parcela: ${p.parcela ? moeda(p.parcela) : "não informado"}`,
+        ]
+      : []),
     `Troca: ${p.temTroca ? `Sim, ${p.trocaModelo ?? ""}${p.trocaAno ? ` ${p.trocaAno}` : ""}`.trim() : "Não"}`,
     ...(p.anotacoes.trim() ? ["", `Anotações da loja: ${p.anotacoes.trim()}`] : []),
   ].join("\n");

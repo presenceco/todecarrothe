@@ -56,6 +56,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
     ...(s.veiculo ? [] : [{ rotulo: "Valor aproximado do carro", valor: moeda(s.valorAproximado ?? 0), largo: true }]),
     { rotulo: "Valor de entrada", valor: moeda(s.entrada) },
     { rotulo: "Prazo desejado", valor: `${s.prazo} meses` },
+    { rotulo: "Parcela que busca", valor: s.parcela ? moeda(s.parcela) : "Não informada" },
   ];
   const status = (variante: "escuro" | "claro") => (
     <StatusEscolha lista="simulacoes" id={s.id} atual={s.status} opcoes={OPCOES_STATUS_SIMULACAO} variante={variante} compacto={variante === "claro"} />

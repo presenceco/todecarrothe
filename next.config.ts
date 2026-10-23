@@ -10,7 +10,8 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   partialPrefetching: true,
   images: {
-    qualities: [75],
+    // 90: foto do Show Automall em "Onde estamos", que perde nitidez com a compressão padrão.
+    qualities: [75, 90],
     remotePatterns: hostSupabase
       ? [{ protocol: "https", hostname: hostSupabase.hostname, pathname: "/storage/v1/object/public/veiculos/**" }]
       : [],
