@@ -10,7 +10,7 @@ export type DadosGaleria = {
   cabecalhoAdmin: { titulo: string; badge: string };
 };
 
-const base = { capa: null, cambio: "automatico", etiqueta: "nenhuma" } as const;
+const base = { capa: null, cambio: "automatico", etiqueta: "nenhuma", etiquetaTexto: null } as const;
 
 /** Dados das telas (Corolla, Tracker, Kwid). */
 export const demo: DadosGaleria = {

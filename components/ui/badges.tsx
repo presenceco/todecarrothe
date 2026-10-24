@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { CLASSES_TOM, ETIQUETAS, type Tom } from "@/lib/status";
+import { CLASSES_ETIQUETA_PERSONALIZADA, CLASSES_TOM, ETIQUETAS, type Etiqueta, type Tom } from "@/lib/status";
 import { Icon } from "./icon";
 
 const PADDING_STATUS = {
@@ -64,19 +64,24 @@ export function CountBadge({ total, rotulo, size = "md", className }: { total: n
 }
 
 /**
- * Etiqueta do veículo (Destaque prateado, Novidade azul, Baixa km preto).
+ * Etiqueta do veículo (Destaque prateado, Novidade azul, Baixa km preto; a escrita pelo admin, branca).
  * sombra: sobre a foto (cartão, galeria) · contorno: no painel do detalhe desktop (22), borda #D9DCE1.
+ * Sem etiqueta (ou personalizada sem texto), não mostra nada.
  */
 export function EtiquetaBadge({
   etiqueta,
+  texto,
   estilo = "sombra",
   className,
 }: {
-  etiqueta: keyof typeof ETIQUETAS;
+  etiqueta: Etiqueta;
+  /** Texto da etiqueta personalizada. */
+  texto?: string | null;
   estilo?: "sombra" | "contorno";
   className?: string;
 }) {
-  const { rotulo, classes } = ETIQUETAS[etiqueta];
+  if (etiqueta === "nenhuma" || (etiqueta === "personalizada" && !texto)) return null;
+  const { rotulo, classes } = etiqueta === "personalizada" ? { rotulo: texto!, classes: CLASSES_ETIQUETA_PERSONALIZADA } : ETIQUETAS[etiqueta];
   return (
     <span
       className={cn(

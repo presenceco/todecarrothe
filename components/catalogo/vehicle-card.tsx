@@ -41,7 +41,7 @@ export function VehicleCard({
             className="object-cover"
           />
         )}
-        {veiculo.etiqueta !== "nenhuma" && <EtiquetaBadge etiqueta={veiculo.etiqueta} className="absolute top-12 left-12" />}
+        <EtiquetaBadge etiqueta={veiculo.etiqueta} texto={veiculo.etiquetaTexto} className="absolute top-12 left-12" />
         {veiculo.totalFotos > 0 && <FotoCountBadge total={veiculo.totalFotos} className="absolute right-12 bottom-12" />}
       </Link>
 

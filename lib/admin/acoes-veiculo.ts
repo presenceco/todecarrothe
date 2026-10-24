@@ -61,7 +61,9 @@ export async function salvarVeiculo(entrada: {
     final_placa: d.finalPlaca,
     preco: d.preco,
     status: d.status,
-    etiqueta: d.etiqueta,
+    // Id no campo = etiqueta personalizada.
+    etiqueta: UUID.test(d.etiqueta) ? "personalizada" : d.etiqueta,
+    etiqueta_personalizada_id: UUID.test(d.etiqueta) ? d.etiqueta : null,
     selos: d.selos,
     publicado: publicar,
   };
@@ -107,6 +109,12 @@ export async function salvarVeiculo(entrada: {
     if (error) console.error("salvarVeiculo opcionais", error);
   }
 
+  await supabase.from("veiculo_selos").delete().eq("veiculo_id", id);
+  if (d.selosExtras.length) {
+    const { error } = await supabase.from("veiculo_selos").insert(d.selosExtras.map((selo_id) => ({ veiculo_id: id, selo_id })));
+    if (error) console.error("salvarVeiculo selos", error);
+  }
+
   updateTag(TAG_VEICULOS);
   // No cadastro novo não atualiza a rota: /novo geraria outro id e o formulário recomeçaria.
   // O navegador segue para a edição ou para a lista, que já leem os dados novos.
@@ -114,17 +122,44 @@ export async function salvarVeiculo(entrada: {
   return { ok: true, id, slug, publicado: publicar };
 }
 
-/** "+ Adicionar opcional": cria um opcional novo, disponível para todos os veículos (ou devolve o que já existe). */
-export async function criarOpcional(nome: string): Promise<{ ok: true; id: string; nome: string } | { ok: false; erro: string }> {
+export type RespostaCriarItem = { ok: true; id: string; nome: string } | { ok: false; erro: string };
+
+/**
+ * Cria um item de lista compartilhada (opcional, etiqueta ou selo), disponível para todos os veículos.
+ * Se já existir um com o mesmo nome (sem diferenciar maiúsculas), devolve o existente.
+ */
+async function criarItem(
+  tabela: "opcionais" | "etiquetas_personalizadas" | "selos_personalizados",
+  nome: string,
+  maximo: number,
+): Promise<RespostaCriarItem> {
   const limpo = nome.replace(/\s+/g, " ").trim();
-  if (limpo.length < 2 || limpo.length > 60) return { ok: false, erro: "Use de 2 a 60 caracteres." };
+  if (limpo.length < 2 || limpo.length > maximo) return { ok: false, erro: `Use de 2 a ${maximo} caracteres.` };
   const { supabase } = await exigirAdmin();
-  const { data: existente } = await supabase.from("opcionais").select("id, nome").ilike("nome", limpo).maybeSingle();
+  // % e _ são curingas no ilike: escapados para comparar o texto exato.
+  const { data: existente } = await supabase.from(tabela).select("id, nome").ilike("nome", limpo.replace(/[\\%_]/g, "\\$&")).maybeSingle();
   if (existente) return { ok: true, ...existente };
-  const { data, error } = await supabase.from("opcionais").insert({ nome: limpo, ordem: 2000 }).select("id, nome").single();
+  // Opcionais criados no painel entram depois dos da lista padrão.
+  const insercao = tabela === "opcionais" ? supabase.from(tabela).insert({ nome: limpo, ordem: 2000 }) : supabase.from(tabela).insert({ nome: limpo });
+  const { data, error } = await insercao.select("id, nome").single();
   if (error || !data) {
-    console.error("criarOpcional", error);
-    return { ok: false, erro: "Não foi possível criar o opcional." };
+    console.error(`criarItem ${tabela}`, error);
+    return { ok: false, erro: "Não foi possível criar. Tente de novo." };
   }
   return { ok: true, ...data };
+}
+
+/** "+ Adicionar opcional". */
+export async function criarOpcional(nome: string) {
+  return criarItem("opcionais", nome, 60);
+}
+
+/** "+ Criar etiqueta": etiqueta escrita pelo admin para o cartão do catálogo (curta, cabe sobre a foto). */
+export async function criarEtiqueta(nome: string) {
+  return criarItem("etiquetas_personalizadas", nome, 20);
+}
+
+/** "+ Adicionar selo": selo verificado escrito pelo admin para a página do veículo. */
+export async function criarSelo(nome: string) {
+  return criarItem("selos_personalizados", nome, 40);
 }

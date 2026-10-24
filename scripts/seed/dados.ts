@@ -7,23 +7,34 @@
  * - publicado_em decrescente = ordem "Mais recentes" do catálogo (telas 01/21: Corolla, Tracker, Strada, T-Cross, Onix, Pulse, Yaris, Kwid).
  */
 
+/** Lista padrão de opcionais comuns (aprovada pelo cliente em 24/10/2026), na ordem do painel. */
 export const OPCIONAIS = [
-  "Ar-condicionado digital",
+  "Ar-condicionado",
+  "Direção hidráulica",
   "Direção elétrica",
-  'Multimídia 9" com CarPlay',
+  "Vidros elétricos",
+  "Travas elétricas",
+  "Retrovisores elétricos",
+  "Alarme",
+  "Central multimídia",
+  "Bluetooth",
+  "Volante multifuncional",
+  "Computador de bordo",
+  "Piloto automático",
   "Câmera de ré",
   "Sensor de estacionamento",
+  "Airbags",
+  "Freios ABS",
+  "Controle de estabilidade",
+  "Faróis de LED",
+  "Faróis de neblina",
+  "Rodas de liga leve",
+  "Rodas com calotas",
   "Bancos em couro",
-  "Piloto automático adaptativo",
-  "Faróis full LED",
-  'Rodas de liga leve 17"',
+  "Bancos em tecido",
   "Chave presencial",
   "Partida por botão",
-  "7 airbags",
-  "Controle de estabilidade",
-  "Retrovisores rebatíveis",
   "Teto solar",
-  "Bancos aquecidos",
 ] as const;
 
 export const SELOS = ["ipva_pago", "unico_dono", "revisoes_em_dia", "chave_reserva", "manual"] as const;
@@ -54,10 +65,12 @@ export type VeiculoSeed = {
 };
 
 const TODOS_SELOS = [0, 1, 2, 3, 4];
-const OPC_COMPLETO = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
-const OPC_BASICO = [0, 1, 3, 11, 12];
-const OPC_MEDIO = [0, 1, 2, 3, 4, 8, 11, 12, 13];
-const OPC_TOPO = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13];
+// Mesmos opcionais de antes da lista comum (renomeados no lugar pela migration de 24/10/2026).
+const OPC_COMPLETO = [0, 2, 7, 12, 13, 21, 11, 17, 19, 23, 24, 14, 16, 5];
+const OPC_BASICO = [0, 2, 12, 14, 16];
+const OPC_MEDIO = [0, 2, 7, 12, 13, 19, 14, 16, 5];
+const OPC_TOPO = [0, 2, 7, 12, 13, 21, 17, 19, 23, 24, 14, 16, 5];
+const TETO_SOLAR = 25;
 
 export const VEICULOS: VeiculoSeed[] = [
   // Os 11 das telas
@@ -75,11 +88,11 @@ export const VEICULOS: VeiculoSeed[] = [
 
   // Completam os 31 disponíveis (contagens por marca da tela 21)
   { marca: "Toyota", modelo: "Hilux", versao: "SRV 2.8 Diesel 4x4", fab: 2021, mod: 2021, km: 78000, cambio: "automatico", cor: "Preto", combustivel: "diesel", tipo: "picape", placa: "5", preco: 229900, status: "disponivel", etiqueta: "destaque", fotos: 14, criado: "2026-10-02T10:00:00-03:00", publicado: "2026-10-02T10:05:00-03:00", selos: [0, 2, 3, 4], opcionais: OPC_TOPO },
-  { marca: "Toyota", modelo: "Corolla Cross", versao: "XRX 1.8 Hybrid", fab: 2022, mod: 2023, km: 29000, cambio: "automatico", cor: "Branco", combustivel: "hibrido", tipo: "suv", placa: "1", preco: 169900, status: "disponivel", etiqueta: "nenhuma", fotos: 13, criado: "2026-10-01T10:00:00-03:00", publicado: "2026-10-01T10:05:00-03:00", selos: TODOS_SELOS, opcionais: [...OPC_TOPO, 14] },
+  { marca: "Toyota", modelo: "Corolla Cross", versao: "XRX 1.8 Hybrid", fab: 2022, mod: 2023, km: 29000, cambio: "automatico", cor: "Branco", combustivel: "hibrido", tipo: "suv", placa: "1", preco: 169900, status: "disponivel", etiqueta: "nenhuma", fotos: 13, criado: "2026-10-01T10:00:00-03:00", publicado: "2026-10-01T10:05:00-03:00", selos: TODOS_SELOS, opcionais: [...OPC_TOPO, TETO_SOLAR] },
   { marca: "Toyota", modelo: "Etios", versao: "X Plus 1.5", fab: 2020, mod: 2021, km: 58000, cambio: "manual", cor: "Prata", combustivel: "flex", tipo: "hatch", placa: "7", preco: 62900, status: "disponivel", etiqueta: "nenhuma", fotos: 7, criado: "2026-09-30T10:00:00-03:00", publicado: "2026-09-30T10:05:00-03:00", selos: [0], opcionais: OPC_BASICO },
   { marca: "Jeep", modelo: "Renegade", versao: "Longitude 1.8", fab: 2020, mod: 2021, km: 61000, cambio: "automatico", cor: "Vermelho", combustivel: "flex", tipo: "suv", placa: "2", preco: 94900, status: "disponivel", etiqueta: "nenhuma", fotos: 10, criado: "2026-09-29T10:00:00-03:00", publicado: "2026-09-29T10:05:00-03:00", selos: [0, 2], opcionais: OPC_MEDIO },
-  { marca: "Jeep", modelo: "Commander", versao: "Limited 1.3 T270", fab: 2022, mod: 2023, km: 27000, cambio: "automatico", cor: "Cinza", combustivel: "flex", tipo: "suv", placa: "8", preco: 199900, status: "disponivel", etiqueta: "novidade", fotos: 14, criado: "2026-09-28T10:00:00-03:00", publicado: "2026-09-28T10:05:00-03:00", selos: TODOS_SELOS, opcionais: [...OPC_COMPLETO, 14, 15] },
-  { marca: "Jeep", modelo: "Compass", versao: "Limited 2.0 Diesel 4x4", fab: 2021, mod: 2021, km: 69000, cambio: "automatico", cor: "Preto", combustivel: "diesel", tipo: "suv", placa: "4", preco: 164900, status: "disponivel", etiqueta: "nenhuma", fotos: 12, criado: "2026-09-27T10:00:00-03:00", publicado: "2026-09-27T10:05:00-03:00", selos: [0, 2, 3], opcionais: [...OPC_TOPO, 14] },
+  { marca: "Jeep", modelo: "Commander", versao: "Limited 1.3 T270", fab: 2022, mod: 2023, km: 27000, cambio: "automatico", cor: "Cinza", combustivel: "flex", tipo: "suv", placa: "8", preco: 199900, status: "disponivel", etiqueta: "novidade", fotos: 14, criado: "2026-09-28T10:00:00-03:00", publicado: "2026-09-28T10:05:00-03:00", selos: TODOS_SELOS, opcionais: [...OPC_COMPLETO, TETO_SOLAR] },
+  { marca: "Jeep", modelo: "Compass", versao: "Limited 2.0 Diesel 4x4", fab: 2021, mod: 2021, km: 69000, cambio: "automatico", cor: "Preto", combustivel: "diesel", tipo: "suv", placa: "4", preco: 164900, status: "disponivel", etiqueta: "nenhuma", fotos: 12, criado: "2026-09-27T10:00:00-03:00", publicado: "2026-09-27T10:05:00-03:00", selos: [0, 2, 3], opcionais: [...OPC_TOPO, TETO_SOLAR] },
   { marca: "Fiat", modelo: "Toro", versao: "Volcano 2.0 Diesel 4x4", fab: 2022, mod: 2022, km: 48000, cambio: "automatico", cor: "Branco", combustivel: "diesel", tipo: "picape", placa: "6", preco: 159900, status: "disponivel", etiqueta: "nenhuma", fotos: 12, criado: "2026-09-26T10:00:00-03:00", publicado: "2026-09-26T10:05:00-03:00", selos: [0, 1, 2], opcionais: OPC_TOPO },
   { marca: "Fiat", modelo: "Argo", versao: "Drive 1.0", fab: 2022, mod: 2023, km: 26000, cambio: "manual", cor: "Prata", combustivel: "flex", tipo: "hatch", placa: "9", preco: 69900, status: "disponivel", etiqueta: "nenhuma", fotos: 9, criado: "2026-09-25T10:00:00-03:00", publicado: "2026-09-25T10:05:00-03:00", selos: [0, 1], opcionais: OPC_BASICO },
   { marca: "Fiat", modelo: "Cronos", versao: "Drive 1.3", fab: 2021, mod: 2022, km: 39000, cambio: "automatico", cor: "Cinza", combustivel: "flex", tipo: "seda", placa: "3", preco: 79900, status: "disponivel", etiqueta: "nenhuma", fotos: 9, criado: "2026-09-24T10:00:00-03:00", publicado: "2026-09-24T10:05:00-03:00", selos: [0, 2], opcionais: OPC_MEDIO },
@@ -91,10 +104,10 @@ export const VEICULOS: VeiculoSeed[] = [
   { marca: "Hyundai", modelo: "Creta", versao: "Limited 1.0 Turbo", fab: 2022, mod: 2023, km: 28000, cambio: "automatico", cor: "Cinza", combustivel: "flex", tipo: "suv", placa: "7", preco: 124900, status: "disponivel", etiqueta: "nenhuma", fotos: 12, criado: "2026-09-18T10:00:00-03:00", publicado: "2026-09-18T10:05:00-03:00", selos: [0, 2, 3], opcionais: OPC_TOPO },
   { marca: "Hyundai", modelo: "HB20", versao: "Platinum 1.0 Turbo", fab: 2023, mod: 2023, km: 14000, cambio: "automatico", cor: "Branco", combustivel: "flex", tipo: "hatch", placa: "4", preco: 92900, status: "disponivel", etiqueta: "baixa_km", fotos: 11, criado: "2026-09-17T10:00:00-03:00", publicado: "2026-09-17T10:05:00-03:00", selos: [0, 1, 2], opcionais: OPC_MEDIO },
   { marca: "Hyundai", modelo: "HB20S", versao: "Comfort Plus 1.0", fab: 2020, mod: 2021, km: 62000, cambio: "manual", cor: "Prata", combustivel: "flex", tipo: "seda", placa: "8", preco: 67900, status: "disponivel", etiqueta: "nenhuma", fotos: 8, criado: "2026-09-16T10:00:00-03:00", publicado: "2026-09-16T10:05:00-03:00", selos: [0], opcionais: OPC_BASICO },
-  { marca: "Hyundai", modelo: "Tucson", versao: "GLS 1.6 Turbo", fab: 2019, mod: 2020, km: 74000, cambio: "automatico", cor: "Preto", combustivel: "gasolina", tipo: "suv", placa: "0", preco: 119900, status: "disponivel", etiqueta: "nenhuma", fotos: 11, criado: "2026-09-15T10:00:00-03:00", publicado: "2026-09-15T10:05:00-03:00", selos: [0, 2], opcionais: [...OPC_TOPO, 14] },
+  { marca: "Hyundai", modelo: "Tucson", versao: "GLS 1.6 Turbo", fab: 2019, mod: 2020, km: 74000, cambio: "automatico", cor: "Preto", combustivel: "gasolina", tipo: "suv", placa: "0", preco: 119900, status: "disponivel", etiqueta: "nenhuma", fotos: 11, criado: "2026-09-15T10:00:00-03:00", publicado: "2026-09-15T10:05:00-03:00", selos: [0, 2], opcionais: [...OPC_TOPO, TETO_SOLAR] },
   { marca: "Chevrolet", modelo: "S10", versao: "LTZ 2.8 Diesel 4x4", fab: 2020, mod: 2021, km: 89000, cambio: "automatico", cor: "Prata", combustivel: "diesel", tipo: "picape", placa: "9", preco: 189900, status: "disponivel", etiqueta: "nenhuma", fotos: 13, criado: "2026-09-14T10:00:00-03:00", publicado: "2026-09-14T10:05:00-03:00", selos: [0, 2, 4], opcionais: OPC_TOPO },
   { marca: "Chevrolet", modelo: "Onix Plus", versao: "Premier 1.0 Turbo", fab: 2022, mod: 2023, km: 30000, cambio: "automatico", cor: "Cinza", combustivel: "flex", tipo: "seda", placa: "3", preco: 99900, status: "disponivel", etiqueta: "nenhuma", fotos: 10, criado: "2026-09-13T10:00:00-03:00", publicado: "2026-09-13T10:05:00-03:00", selos: [0, 1, 2, 3], opcionais: OPC_TOPO },
-  { marca: "Honda", modelo: "Civic", versao: "Touring 1.5 Turbo", fab: 2020, mod: 2020, km: 58000, cambio: "automatico", cor: "Preto", combustivel: "gasolina", tipo: "seda", placa: "5", preco: 139900, status: "disponivel", etiqueta: "nenhuma", fotos: 12, criado: "2026-09-12T10:00:00-03:00", publicado: "2026-09-12T10:05:00-03:00", selos: [0, 2, 3], opcionais: [...OPC_COMPLETO, 14] },
+  { marca: "Honda", modelo: "Civic", versao: "Touring 1.5 Turbo", fab: 2020, mod: 2020, km: 58000, cambio: "automatico", cor: "Preto", combustivel: "gasolina", tipo: "seda", placa: "5", preco: 139900, status: "disponivel", etiqueta: "nenhuma", fotos: 12, criado: "2026-09-12T10:00:00-03:00", publicado: "2026-09-12T10:05:00-03:00", selos: [0, 2, 3], opcionais: [...OPC_COMPLETO, TETO_SOLAR] },
   { marca: "Honda", modelo: "City", versao: "EXL 1.5", fab: 2022, mod: 2023, km: 26000, cambio: "automatico", cor: "Branco", combustivel: "flex", tipo: "seda", placa: "2", preco: 114900, status: "disponivel", etiqueta: "nenhuma", fotos: 10, criado: "2026-09-11T10:00:00-03:00", publicado: "2026-09-11T10:05:00-03:00", selos: [0, 1, 2], opcionais: OPC_TOPO },
   { marca: "Renault", modelo: "Duster", versao: "Iconic 1.3 TCe", fab: 2022, mod: 2023, km: 34000, cambio: "automatico", cor: "Cinza", combustivel: "flex", tipo: "suv", placa: "6", preco: 109900, status: "disponivel", etiqueta: "nenhuma", fotos: 11, criado: "2026-09-10T10:00:00-03:00", publicado: "2026-09-10T10:05:00-03:00", selos: [0, 2], opcionais: OPC_MEDIO },
 

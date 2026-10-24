@@ -1,12 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { OptionGroup } from "@/components/ui/option-group";
 import { SelectField, type OpcaoSelect } from "@/components/ui/select-field";
 import { Switch } from "@/components/ui/switch";
-import { enviarPedido } from "@/lib/formularios/acoes";
+import { confirmarFotosPedido, enviarPedido } from "@/lib/formularios/acoes";
 import { errosPorCampo, esquemaPedido, FAIXAS_PRECO, PRAZOS_PEDIDO, type CamposPedido } from "@/lib/formularios/esquemas";
 import { TEXTO_CONSENTIMENTO } from "@/lib/consentimento";
 import { mascaraAno, mascaraMoeda, mascaraWhatsapp } from "@/lib/mascaras";
+import { clienteNavegador } from "@/lib/supabase/navegador";
+import { FotosCliente, prepararFoto, type FotoLocal } from "./fotos-cliente";
 import { AvisoGeral, Autorizacao, CampoIsca, CampoMascara, ErroGrupo, RodapeEnvio } from "./partes";
 import { useFormulario } from "./use-formulario";
 
@@ -36,21 +40,50 @@ const PAGAMENTOS = [
 
 /**
  * Pedido de busca, "Não encontrou seu carro?" (07 mobile, 24 desktop). Num cartão só; no desktop os
- * campos curtos ficam lado a lado. Com o interruptor ligado aparecem o modelo e o ano do carro da entrada.
+ * campos curtos ficam lado a lado. Com o interruptor ligado aparecem o modelo, o ano e as fotos do carro
+ * da entrada. Com fotos, o envio é em duas etapas, como no "Venda seu carro": o servidor grava e devolve
+ * links assinados; o navegador sobe as fotos para o bucket privado e só então vai para a confirmação.
  */
 export function FormPedido({ anos }: { anos: readonly OpcaoSelect[] }) {
+  const router = useRouter();
+  const [fotos, setFotos] = useState<FotoLocal[]>([]);
   const validar = (c: CamposPedido) => {
-    const r = esquemaPedido.safeParse(c);
+    const r = esquemaPedido.safeParse({ ...c, fotos: fotos.map((foto) => ({ tipo: foto.arquivo.type, tamanho: foto.arquivo.size })) });
     return r.success ? null : errosPorCampo(r.error);
   };
   const f = useFormulario(VAZIO, validar);
   const { campos: c, definir, erros } = f;
+  // Progresso das fotos depois que o pedido foi gravado ("Enviando fotos 2 de 5…").
+  const [progresso, setProgresso] = useState<{ atual: number; total: number } | null>(null);
+  const ocupado = f.enviando || progresso !== null;
 
   function enviar(e: React.FormEvent) {
     e.preventDefault();
-    if (!f.conferir()) return;
+    if (ocupado || !f.conferir()) return;
     f.iniciar(async () => {
-      f.receber(await enviarPedido({ campos: c, iniciadoEm: f.iniciadoEm.current }));
+      // Sem troca, as fotos escolhidas antes de desligar o interruptor não vão.
+      const arquivos = c.temTroca ? await Promise.all(fotos.map((foto) => prepararFoto(foto.arquivo))) : [];
+      const resposta = await enviarPedido({
+        campos: c,
+        fotos: arquivos.map((a) => ({ tipo: a.type, tamanho: a.size })),
+        iniciadoEm: f.iniciadoEm.current,
+      });
+      if (!resposta || !("ok" in resposta)) {
+        f.receber(resposta);
+        return;
+      }
+
+      // O pedido já está gravado: falha numa foto não impede a confirmação.
+      const enviadas: string[] = [];
+      const storage = clienteNavegador().storage.from("trocas");
+      for (const [i, envio] of resposta.uploads.entries()) {
+        setProgresso({ atual: i + 1, total: resposta.uploads.length });
+        const arquivo = arquivos[i];
+        const { error } = await storage.uploadToSignedUrl(envio.path, envio.token, arquivo, { contentType: arquivo.type });
+        if (!error) enviadas.push(envio.path);
+      }
+      if (enviadas.length) await confirmarFotosPedido({ id: resposta.id, assinatura: resposta.assinatura, paths: enviadas });
+      router.push(resposta.confirmacao);
     });
   }
 
@@ -164,11 +197,32 @@ export function FormPedido({ anos }: { anos: readonly OpcaoSelect[] }) {
               <CampoMascara {...campo("trocaAno")} label="Ano" placeholder="2019" inputMode="numeric" mascara={mascaraAno} />
             </div>
           )}
+          {/* Fotos do carro de entrada (opcionais; pedido do cliente, fora das telas 07/24). */}
+          {c.temTroca && (
+            <div data-novo="" className="flex flex-col gap-6">
+              <p className="text-14 font-semibold text-gray-700">
+                Fotos do carro <span className="font-normal text-gray-500">(opcional)</span>
+              </p>
+              <FotosCliente
+                fotos={fotos}
+                onFotos={setFotos}
+                erro={erros.fotos}
+                desabilitado={ocupado}
+                dica="Frente, traseira, laterais e painel ajudam a avaliar a troca"
+              />
+            </div>
+          )}
         </div>
       </section>
 
       <Autorizacao texto={TEXTO_CONSENTIMENTO.pedido_busca} marcado={c.autorizado} onMarcar={(v) => definir("autorizado", v)} erro={erros.autorizado} />
-      <RodapeEnvio rotulo="Fazer pedido" autorizado={c.autorizado} enviando={f.enviando} desktop="bloco" />
+      <RodapeEnvio
+        rotulo="Fazer pedido"
+        rotuloEnviando={progresso ? `Enviando fotos ${progresso.atual} de ${progresso.total}…` : undefined}
+        autorizado={c.autorizado}
+        enviando={ocupado}
+        desktop="bloco"
+      />
     </form>
   );
 }

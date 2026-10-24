@@ -33,8 +33,11 @@ export type CamposVeiculo = {
   finalPlaca: string;
   preco: string;
   status: string;
+  /** Uma das fixas ("nenhuma", "destaque"…) ou o id de uma etiqueta personalizada. */
   etiqueta: string;
   selos: string[];
+  /** Ids dos selos personalizados ligados. */
+  selosExtras: string[];
   opcionais: string[];
 };
 
@@ -63,8 +66,9 @@ export const esquemaVeiculo = z
       .transform((v) => Number(digitos(v)))
       .refine((n) => n >= 1000 && n <= 50_000_000, { error: "Confira o preço." }),
     status: z.enum(Object.keys(STATUS_VEICULO) as [string, ...string[]]),
-    etiqueta: z.enum(OPCOES_ETIQUETA.map((e) => e.value) as [string, ...string[]]),
+    etiqueta: z.union([z.enum(OPCOES_ETIQUETA.map((e) => e.value) as [string, ...string[]]), z.uuid()], { error: "Escolha a etiqueta." }),
     selos: z.array(z.enum(SELOS.map((s) => s.chave) as [string, ...string[]])).max(SELOS.length),
+    selosExtras: z.array(z.uuid()).max(30),
     opcionais: z.array(z.uuid()).max(200),
   })
   .transform((d, ctx) => {

@@ -38,6 +38,7 @@ const VAZIO: CamposVeiculo = {
   status: "disponivel",
   etiqueta: "nenhuma",
   selos: [],
+  selosExtras: [],
   opcionais: [],
 };
 
@@ -54,7 +55,7 @@ export async function carregarVeiculo(id: string): Promise<DadosFormVeiculo | nu
   const { supabase } = await exigirAdmin();
   const { data: v } = await supabase
     .from("veiculos")
-    .select("*, veiculo_fotos (path, ordem), veiculo_opcionais (opcional_id)")
+    .select("*, veiculo_fotos (path, ordem), veiculo_opcionais (opcional_id), veiculo_selos (selo_id)")
     .eq("id", id)
     .maybeSingle();
   if (!v) return null;
@@ -78,8 +79,10 @@ export async function carregarVeiculo(id: string): Promise<DadosFormVeiculo | nu
       finalPlaca: v.final_placa,
       preco: mascaraReais(String(Math.round(Number(v.preco)))),
       status: v.status,
-      etiqueta: v.etiqueta,
+      // Personalizada: o campo guarda o id dela (se a etiqueta sumiu da lista, fica sem etiqueta).
+      etiqueta: v.etiqueta === "personalizada" ? (v.etiqueta_personalizada_id ?? "nenhuma") : v.etiqueta,
       selos: v.selos,
+      selosExtras: v.veiculo_selos.map((s) => s.selo_id),
       opcionais: v.veiculo_opcionais.map((o) => o.opcional_id),
     },
     fotos: [...v.veiculo_fotos].sort((a, b) => a.ordem - b.ordem).map((f) => ({ path: f.path, url: urlFotoVeiculo(f.path), origem: "veiculo" as const })),
@@ -125,6 +128,20 @@ export async function novoVeiculo(consignacaoId?: string): Promise<DadosFormVeic
 export async function listarOpcionais(): Promise<Opcional[]> {
   const { supabase } = await exigirAdmin();
   const { data } = await supabase.from("opcionais").select("id, nome").order("ordem").order("nome");
+  return data ?? [];
+}
+
+/** Etiquetas escritas no painel, na ordem em que foram criadas. */
+export async function listarEtiquetas(): Promise<Opcional[]> {
+  const { supabase } = await exigirAdmin();
+  const { data } = await supabase.from("etiquetas_personalizadas").select("id, nome").order("created_at");
+  return data ?? [];
+}
+
+/** Selos escritos no painel, na ordem em que foram criados. */
+export async function listarSelos(): Promise<Opcional[]> {
+  const { supabase } = await exigirAdmin();
+  const { data } = await supabase.from("selos_personalizados").select("id, nome").order("created_at");
   return data ?? [];
 }
 

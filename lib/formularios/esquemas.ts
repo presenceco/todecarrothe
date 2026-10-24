@@ -152,6 +152,15 @@ export const FAIXAS_PRECO = [
 /** Quantidade de parcelas do pedido de busca financiado. */
 export const PRAZOS_PEDIDO = [12, 24, 36, 48, 60] as const;
 
+/** Fotos enviadas pelo cliente (consignação e carro de entrada do pedido): até 8 JPG/PNG de até 10 MB. */
+export const FOTOS_CLIENTE = { maximo: 8, tamanhoMaximo: 10 * 1024 * 1024, tipos: ["image/jpeg", "image/png"] } as const;
+
+const fotosCliente = z
+  .array(z.object({ tipo: z.string(), tamanho: z.number() }))
+  .max(FOTOS_CLIENTE.maximo, { error: `Envie no máximo ${FOTOS_CLIENTE.maximo} fotos.` })
+  .refine((fs) => fs.every((f) => (FOTOS_CLIENTE.tipos as readonly string[]).includes(f.tipo)), { error: "Use fotos JPG ou PNG." })
+  .refine((fs) => fs.every((f) => f.tamanho <= FOTOS_CLIENTE.tamanhoMaximo), { error: "Cada foto pode ter até 10 MB." });
+
 export const esquemaPedido = z
   .object({
     nome,
@@ -173,12 +182,19 @@ export const esquemaPedido = z
     temTroca: z.boolean(),
     trocaModelo: z.string().trim().max(80).optional(),
     trocaAno: anoTroca,
+    // Fotos do carro de entrada (opcionais; só com "Tenho carro para dar de entrada").
+    fotos: fotosCliente.default([]),
     autorizado,
     site: isca,
   })
   .superRefine(validarTroca)
   // À vista: descarta prazo, entrada e parcela que tenham ficado preenchidos antes de trocar a forma de pagamento.
-  .transform((d) => (d.pagamento === "financiado" ? d : { ...d, prazo: null, entrada: null, parcela: null }));
+  // Sem troca: descarta as fotos escolhidas antes de desligar o interruptor.
+  .transform((d) => ({
+    ...d,
+    ...(d.pagamento === "financiado" ? {} : { prazo: null, entrada: null, parcela: null }),
+    fotos: d.temTroca ? d.fotos : [],
+  }));
 
 export type CamposPedido = {
   nome: string;
@@ -205,8 +221,6 @@ export const FORMAS_VENDA = [
   { value: "consignacao", label: "Consignação" },
 ] as const;
 
-export const FOTOS_CONSIGNACAO = { maximo: 8, tamanhoMaximo: 10 * 1024 * 1024, tipos: ["image/jpeg", "image/png"] } as const;
-
 export const esquemaConsignacao = z
   .object({
     forma: z.enum(["venda_direta", "troca", "consignacao"], { error: "Escolha como prefere vender." }),
@@ -226,11 +240,7 @@ export const esquemaConsignacao = z
     detalhes: z.string().trim().max(2000, { error: "Use até 2.000 caracteres." }).optional().default(""),
     nome,
     whatsapp,
-    fotos: z
-      .array(z.object({ tipo: z.string(), tamanho: z.number() }))
-      .max(FOTOS_CONSIGNACAO.maximo, { error: `Envie no máximo ${FOTOS_CONSIGNACAO.maximo} fotos.` })
-      .refine((fs) => fs.every((f) => (FOTOS_CONSIGNACAO.tipos as readonly string[]).includes(f.tipo)), { error: "Use fotos JPG ou PNG." })
-      .refine((fs) => fs.every((f) => f.tamanho <= FOTOS_CONSIGNACAO.tamanhoMaximo), { error: "Cada foto pode ter até 10 MB." }),
+    fotos: fotosCliente,
     autorizado,
     site: isca,
   })

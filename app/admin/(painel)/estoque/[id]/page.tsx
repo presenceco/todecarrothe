@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { FormVeiculo } from "@/components/admin/veiculo/form-veiculo";
 import { exigirAdmin } from "@/lib/admin/sessao";
-import { carregarVeiculo, listarOpcionais, modelosPorMarca } from "@/lib/admin/veiculo";
+import { carregarVeiculo, listarEtiquetas, listarOpcionais, listarSelos, modelosPorMarca } from "@/lib/admin/veiculo";
 import { anoAtual } from "@/lib/formato";
 
 export const metadata: Metadata = { title: "Editar veículo" };
@@ -15,9 +15,9 @@ async function Editar({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await exigirAdmin();
   if (!UUID.test(id)) notFound();
-  const [dados, opcionais, modelos] = await Promise.all([carregarVeiculo(id), listarOpcionais(), modelosPorMarca()]);
+  const [dados, opcionais, etiquetas, selos, modelos] = await Promise.all([carregarVeiculo(id), listarOpcionais(), listarEtiquetas(), listarSelos(), modelosPorMarca()]);
   if (!dados) notFound();
-  return <FormVeiculo key={dados.id} dados={dados} opcionais={opcionais} modelos={modelos} anoAtual={anoAtual()} />;
+  return <FormVeiculo key={dados.id} dados={dados} opcionais={opcionais} etiquetas={etiquetas} selos={selos} modelos={modelos} anoAtual={anoAtual()} />;
 }
 
 /** Editar veículo (15 mobile, 28 desktop). */

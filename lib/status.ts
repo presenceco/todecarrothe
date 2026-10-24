@@ -52,4 +52,8 @@ export const ETIQUETAS = {
   baixa_km: { rotulo: "Baixa km", classes: "bg-black text-white" },
 } as const;
 
-export type Etiqueta = keyof typeof ETIQUETAS | "nenhuma";
+/** "personalizada": etiqueta escrita pelo admin (o texto vem de etiquetas_personalizadas). */
+export type Etiqueta = keyof typeof ETIQUETAS | "nenhuma" | "personalizada";
+
+/** Cores da etiqueta escrita pelo admin: branca com texto azul, para não se confundir com as três fixas. */
+export const CLASSES_ETIQUETA_PERSONALIZADA = "bg-white text-brand";

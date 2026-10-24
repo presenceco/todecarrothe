@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { DetalheMobile, DetalhePainel, SecaoMobile, SecaoPainel, BotaoWhatsapp, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
+import { DetalheMobile, DetalhePainel, FotosEnviadas, SecaoMobile, SecaoPainel, BotaoWhatsapp, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
 import { Anotacoes, BotaoCopiar, StatusEscolha } from "@/components/admin/detalhe/interativos";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { BASE_PEDIDOS, ListaPedidos, OPCOES_STATUS_PEDIDO, whatsappPedido } from "@/components/admin/pedidos/lista-pedidos";
@@ -81,6 +81,11 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
             ...(p.temTroca ? [{ rotulo: "Modelo e ano", valor: [p.trocaModelo, p.trocaAno].filter(Boolean).join(" · ") || "—" }] : []),
           ]}
         />
+        {p.temTroca && (
+          <SecaoPainel titulo={`Fotos do carro de entrada · ${p.fotos.length}`}>
+            <FotosEnviadas fotos={p.fotos} colunas="grid-cols-4" />
+          </SecaoPainel>
+        )}
         <SecaoPainel titulo="Anotações da loja">
           <Anotacoes lista="pedidos" id={p.id} inicial={p.anotacoes} placeholder={PLACEHOLDER} variante="painel" />
         </SecaoPainel>
@@ -103,6 +108,11 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         <SecaoMobile titulo="Contato" itens={contato} />
         <SecaoMobile titulo="Carro desejado" itens={carro} />
         <SecaoMobile titulo="Troca" itens={troca} />
+        {p.temTroca && (
+          <SecaoMobile titulo={`Fotos do carro de entrada · ${p.fotos.length}`}>
+            <FotosEnviadas fotos={p.fotos} colunas="grid-cols-3" />
+          </SecaoMobile>
+        )}
         <SecaoMobile titulo="Anotações da loja" className="flex flex-col gap-10 [&>h2]:mb-0">
           <Anotacoes lista="pedidos" id={p.id} inicial={p.anotacoes} placeholder={PLACEHOLDER} variante="cartao" />
         </SecaoMobile>

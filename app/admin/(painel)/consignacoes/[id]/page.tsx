@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BASE_CONSIGNACOES, ListaConsignacoes, OPCOES_STATUS_CONSIGNACAO, whatsappConsignacao } from "@/components/admin/consignacoes/lista-consignacoes";
-import { BotaoWhatsapp, DetalheMobile, DetalhePainel, SecaoMobile, SecaoPainel, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
+import { BotaoWhatsapp, DetalheMobile, DetalhePainel, FotosEnviadas, SecaoMobile, SecaoPainel, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
 import { Anotacoes, BotaoCopiar, StatusEscolha } from "@/components/admin/detalhe/interativos";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { Icon } from "@/components/ui/icon";
@@ -31,23 +31,6 @@ function FormaDestaque({ c }: { c: Consignacao }) {
         <p className="text-17 font-bold">{f.rotulo}</p>
       </div>
     </div>
-  );
-}
-
-/** Fotos enviadas pelo cliente (bucket privado; cada uma abre em tamanho real numa aba nova). */
-function Fotos({ fotos, colunas }: { fotos: string[]; colunas: string }) {
-  if (!fotos.length) return <p className="text-15 text-gray-500">O cliente não enviou fotos.</p>;
-  return (
-    <ul className={cn("grid gap-8", colunas)}>
-      {fotos.map((url, i) => (
-        <li key={url}>
-          <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Abrir foto ${i + 1} de ${fotos.length}`} className="block overflow-hidden rounded-10 bg-hatch-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element -- URL assinada e temporária do bucket privado */}
-            <img src={url} alt="" className="aspect-[4/3] w-full object-cover transition-transform duration-200 ease-out hover:scale-103" />
-          </a>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -126,7 +109,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
       >
         <FormaDestaque c={c} />
         <SecaoPainel titulo={`Fotos enviadas · ${fotos.length}`}>
-          <Fotos fotos={fotos} colunas="grid-cols-4" />
+          <FotosEnviadas fotos={fotos} colunas="grid-cols-4" />
         </SecaoPainel>
         <SecaoPainel titulo="Carro" itens={semLargo(carro)} />
         <SecaoPainel titulo="Valor que o dono quer receber">{valor}</SecaoPainel>
@@ -153,7 +136,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
       >
         <FormaDestaque c={c} />
         <SecaoMobile titulo={`Fotos enviadas · ${fotos.length}`}>
-          <Fotos fotos={fotos} colunas="grid-cols-3" />
+          <FotosEnviadas fotos={fotos} colunas="grid-cols-3" />
         </SecaoMobile>
         <SecaoMobile titulo="Carro" itens={carro} />
         <SecaoMobile titulo="Valor que o dono quer receber">{valor}</SecaoMobile>

@@ -11,7 +11,7 @@ import { errosPorCampo, esquemaConsignacao, FORMAS_VENDA, type CamposConsignacao
 import { MARCAS } from "@/lib/marcas";
 import { mascaraAnoFabModelo, mascaraKm, mascaraMoeda, mascaraWhatsapp } from "@/lib/mascaras";
 import { clienteNavegador } from "@/lib/supabase/navegador";
-import { FotosConsignacao, prepararFoto, type FotoLocal } from "./fotos-consignacao";
+import { FotosCliente, prepararFoto, type FotoLocal } from "./fotos-cliente";
 import { AvisoGeral, Autorizacao, CampoIsca, CampoMascara, CartaoForm, ErroGrupo, RodapeEnvio } from "./partes";
 import { useFormulario } from "./use-formulario";
 
@@ -203,7 +203,7 @@ export function FormConsignacao() {
       </CartaoForm>
 
       <CartaoForm titulo={opcional("Fotos")}>
-        <FotosConsignacao fotos={fotos} onFotos={setFotos} erro={erros.fotos} desabilitado={ocupado} />
+        <FotosCliente fotos={fotos} onFotos={setFotos} erro={erros.fotos} desabilitado={ocupado} />
       </CartaoForm>
 
       <CartaoForm titulo="Seus dados">

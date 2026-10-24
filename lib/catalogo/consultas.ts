@@ -13,7 +13,8 @@ import type { Selo, VeiculoCatalogo, VeiculoDetalhe } from "@/lib/tipos";
 
 export const TAG_VEICULOS = "veiculos";
 
-const CAMPOS = "id, slug, marca, modelo, versao, ano_fabricacao, ano_modelo, km, cambio, cor, combustivel, tipo, preco, etiqueta, publicado_em";
+const CAMPOS =
+  "id, slug, marca, modelo, versao, ano_fabricacao, ano_modelo, km, cambio, cor, combustivel, tipo, preco, etiqueta, publicado_em, etiquetas_personalizadas (nome)";
 
 type LinhaFoto = { path: string; ordem: number };
 
@@ -47,10 +48,12 @@ function paraCatalogo(v: {
   preco: number;
   etiqueta: string;
   publicado_em: string | null;
+  etiquetas_personalizadas: { nome: string } | null;
   veiculo_fotos: LinhaFoto[];
 }): VeiculoCatalogo {
   const nome = nomeCompleto(v);
   const fotos = fotosOrdenadas(v.veiculo_fotos, nome);
+  const etiquetaTexto = v.etiqueta === "personalizada" ? (v.etiquetas_personalizadas?.nome ?? null) : null;
   return {
     slug: v.slug,
     marca: v.marca,
@@ -64,7 +67,9 @@ function paraCatalogo(v: {
     combustivel: v.combustivel as VeiculoCatalogo["combustivel"],
     tipo: v.tipo as VeiculoCatalogo["tipo"],
     preco: Number(v.preco),
-    etiqueta: v.etiqueta as VeiculoCatalogo["etiqueta"],
+    // Personalizada cuja etiqueta sumiu da lista: fica sem etiqueta.
+    etiqueta: v.etiqueta === "personalizada" && !etiquetaTexto ? "nenhuma" : (v.etiqueta as VeiculoCatalogo["etiqueta"]),
+    etiquetaTexto,
     publicadoEm: v.publicado_em ? Date.parse(v.publicado_em) : 0,
     totalFotos: fotos.length,
     capa: fotos[0] ?? null,
@@ -95,7 +100,9 @@ export async function obterVeiculo(slug: string): Promise<VeiculoDetalhe | null>
 
   const { data, error } = await clientePublico()
     .from("veiculos")
-    .select(`${CAMPOS}, final_placa, selos, veiculo_fotos (path, ordem), veiculo_opcionais (opcionais (nome, ordem))`)
+    .select(
+      `${CAMPOS}, final_placa, selos, veiculo_fotos (path, ordem), veiculo_opcionais (opcionais (nome, ordem)), veiculo_selos (selos_personalizados (nome, created_at))`,
+    )
     .eq("slug", slug)
     .eq("status", "disponivel")
     .eq("publicado", true)
@@ -114,6 +121,12 @@ export async function obterVeiculo(slug: string): Promise<VeiculoDetalhe | null>
     ...base,
     finalPlaca: data.final_placa,
     selos: data.selos as Selo[],
+    // Na ordem em que foram criados no painel.
+    selosExtras: data.veiculo_selos
+      .map((vs) => vs.selos_personalizados)
+      .filter((s): s is { nome: string; created_at: string } => !!s)
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .map((s) => s.nome),
     opcionais,
     fotos: fotosOrdenadas(data.veiculo_fotos, nomeCompleto(data)),
   };

@@ -62,7 +62,7 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
 
       <div className="mx-auto max-w-page lg:grid lg:grid-cols-[minmax(0,1fr)_440px] lg:items-start lg:gap-x-40 lg:gap-y-24 lg:px-32 lg:pb-72 xl:px-64">
         <div className="lg:col-start-1">
-          <Galeria fotos={v.fotos} etiqueta={v.etiqueta} nome={nome} />
+          <Galeria fotos={v.fotos} etiqueta={v.etiqueta} etiquetaTexto={v.etiquetaTexto} nome={nome} />
         </div>
 
         <aside
@@ -70,7 +70,7 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
           className="flex flex-col gap-20 px-16 pt-20 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:rounded-16 lg:bg-white lg:p-28 lg:shadow-float"
         >
           <div>
-            {v.etiqueta !== "nenhuma" && <EtiquetaBadge etiqueta={v.etiqueta} estilo="contorno" className="mb-14 hidden lg:inline-flex" />}
+            <EtiquetaBadge etiqueta={v.etiqueta} texto={v.etiquetaTexto} estilo="contorno" className="mb-14 hidden lg:inline-flex" />
             <p className="text-14 font-bold tracking-eyebrow text-brand uppercase">{v.marca}</p>
             <h1 className="mt-2 font-display text-34 leading-105 font-extrabold italic lg:text-44 lg:leading-102">{v.modelo}</h1>
             <p className="mt-4 text-16 text-gray-600 lg:text-18">{meta}</p>
@@ -90,7 +90,7 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
             </ButtonAnchor>
           </div>
 
-          {v.selos.length > 0 && (
+          {v.selos.length + v.selosExtras.length > 0 && (
             <>
               <div aria-hidden="true" className="hidden h-1 bg-filete lg:block" />
               <Selos v={v} />
@@ -141,7 +141,13 @@ function CartaoFinanciar({ href }: { href: string }) {
   );
 }
 
-/** "Verificado pela loja": pílulas no mobile (03), lista no desktop (22). O IPVA leva o ano corrente. */
+const ITEM_SELO =
+  "flex min-h-42 items-center gap-6 rounded-pill border border-gray-150 bg-white py-8 pr-12 pl-10 text-14 font-semibold lg:min-h-0 lg:gap-10 lg:border-0 lg:bg-transparent lg:p-0 lg:text-15 lg:font-medium";
+
+/**
+ * "Verificado pela loja": pílulas no mobile (03), lista no desktop (22). O IPVA leva o ano corrente.
+ * Os selos escritos pelo admin vêm depois dos fixos, com o mesmo visual.
+ */
 function Selos({ v }: { v: VeiculoDetalhe }) {
   const selos = SELOS.filter((s) => v.selos.includes(s.chave));
   return (
@@ -151,10 +157,7 @@ function Selos({ v }: { v: VeiculoDetalhe }) {
       </h2>
       <ul className="flex flex-wrap gap-8 lg:flex-col lg:gap-10">
         {selos.map((s) => (
-          <li
-            key={s.chave}
-            className="flex h-42 items-center gap-6 rounded-pill border border-gray-150 bg-white pr-12 pl-10 text-14 font-semibold lg:h-auto lg:gap-10 lg:border-0 lg:bg-transparent lg:p-0 lg:text-15 lg:font-medium"
-          >
+          <li key={s.chave} className={ITEM_SELO}>
             <Icon name="verified" size={20} fill className="text-brand" />
             {s.chave === "ipva_pago" ? (
               <span>
@@ -163,6 +166,12 @@ function Selos({ v }: { v: VeiculoDetalhe }) {
             ) : (
               s.rotulo(0)
             )}
+          </li>
+        ))}
+        {v.selosExtras.map((nome) => (
+          <li key={nome} className={ITEM_SELO}>
+            <Icon name="verified" size={20} fill className="text-brand" />
+            <span className="min-w-0 break-words">{nome}</span>
           </li>
         ))}
       </ul>

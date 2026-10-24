@@ -48,6 +48,23 @@ export function SecaoPainel({ titulo, itens, children }: { titulo: string; itens
 }
 
 /** "Chamar no WhatsApp": verde, ícone de conversa preenchido. */
+/** Fotos enviadas pelo cliente (bucket privado; cada uma abre em tamanho real numa aba nova). */
+export function FotosEnviadas({ fotos, colunas }: { fotos: string[]; colunas: string }) {
+  if (!fotos.length) return <p className="text-15 text-gray-500">O cliente não enviou fotos.</p>;
+  return (
+    <ul className={cn("grid gap-8", colunas)}>
+      {fotos.map((url, i) => (
+        <li key={url}>
+          <a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Abrir foto ${i + 1} de ${fotos.length}`} className="block overflow-hidden rounded-10 bg-hatch-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element -- URL assinada e temporária do bucket privado */}
+            <img src={url} alt="" className="aspect-[4/3] w-full object-cover transition-transform duration-200 ease-out hover:scale-103" />
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function BotaoWhatsapp({ href, variante }: { href: string; variante: "rodape" | "painel" }) {
   return (
     <a

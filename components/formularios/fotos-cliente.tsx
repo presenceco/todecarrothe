@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
-import { FOTOS_CONSIGNACAO } from "@/lib/formularios/esquemas";
+import { FOTOS_CLIENTE } from "@/lib/formularios/esquemas";
 
 export type FotoLocal = { id: string; arquivo: File; url: string };
 
@@ -13,24 +13,27 @@ const REDUZIR_ACIMA = 2 * MB;
 const LADO_MAXIMO = 2400;
 
 /**
- * Fotos da "Venda seu carro" (33/37): até 8 JPG ou PNG de até 10 MB, com prévia e botão para remover.
+ * Fotos enviadas pelo cliente ("Venda seu carro", 33/37, e carro de entrada do pedido de busca): até 8 JPG
+ * ou PNG de até 10 MB, com prévia e botão para remover.
  * Os arquivos ficam no navegador até o envio; o formulário sobe cada um para o Storage com link assinado.
  */
-export function FotosConsignacao({
+export function FotosCliente({
   fotos,
   onFotos,
   erro,
   desabilitado,
+  dica = "Frente, traseira, laterais, painel e bancos ajudam na avaliação",
 }: {
   fotos: readonly FotoLocal[];
   onFotos: (fotos: FotoLocal[]) => void;
   erro?: string;
   desabilitado?: boolean;
+  dica?: string;
 }) {
   const [recusadas, setRecusadas] = useState<string[]>([]);
   const entrada = useRef<HTMLInputElement>(null);
   const idDica = useId();
-  const restantes = FOTOS_CONSIGNACAO.maximo - fotos.length;
+  const restantes = FOTOS_CLIENTE.maximo - fotos.length;
 
   // Libera as prévias (URLs de objeto) quando o componente sai da tela.
   const atuais = useRef(fotos);
@@ -44,9 +47,9 @@ export function FotosConsignacao({
     const novas: FotoLocal[] = [];
     const motivos: string[] = [];
     for (const arquivo of Array.from(lista)) {
-      if (!(FOTOS_CONSIGNACAO.tipos as readonly string[]).includes(arquivo.type)) motivos.push(`${arquivo.name}: use JPG ou PNG.`);
-      else if (arquivo.size > FOTOS_CONSIGNACAO.tamanhoMaximo) motivos.push(`${arquivo.name}: passa de 10 MB.`);
-      else if (novas.length >= restantes) motivos.push(`${arquivo.name}: o limite é de ${FOTOS_CONSIGNACAO.maximo} fotos.`);
+      if (!(FOTOS_CLIENTE.tipos as readonly string[]).includes(arquivo.type)) motivos.push(`${arquivo.name}: use JPG ou PNG.`);
+      else if (arquivo.size > FOTOS_CLIENTE.tamanhoMaximo) motivos.push(`${arquivo.name}: passa de 10 MB.`);
+      else if (novas.length >= restantes) motivos.push(`${arquivo.name}: o limite é de ${FOTOS_CLIENTE.maximo} fotos.`);
       else novas.push({ id: crypto.randomUUID(), arquivo, url: URL.createObjectURL(arquivo) });
     }
     setRecusadas(motivos);
@@ -77,7 +80,7 @@ export function FotosConsignacao({
         ref={entrada}
         id="campo-fotos"
         type="file"
-        accept={FOTOS_CONSIGNACAO.tipos.join(",")}
+        accept={FOTOS_CLIENTE.tipos.join(",")}
         multiple
         disabled={desabilitado}
         onChange={(e) => adicionar(e.target.files)}
@@ -90,7 +93,7 @@ export function FotosConsignacao({
   return (
     <div className="flex flex-col gap-12">
       <p id={idDica} className="-mt-4 text-14 leading-140 text-gray-600">
-        Frente, traseira, laterais, painel e bancos ajudam na avaliação
+        {dica}
       </p>
       {fotos.length === 0 ? (
         botaoAdicionar(true)
@@ -120,7 +123,7 @@ export function FotosConsignacao({
         </ul>
       )}
       <p className="text-14 text-gray-500">
-        {fotos.length} de {FOTOS_CONSIGNACAO.maximo} fotos · JPG ou PNG, até 10 MB cada
+        {fotos.length} de {FOTOS_CLIENTE.maximo} fotos · JPG ou PNG, até 10 MB cada
       </p>
       {(erro || recusadas.length > 0) && (
         <div id="campo-fotos-erro" aria-live="polite" className="-mt-4 text-14 leading-140 text-danger">

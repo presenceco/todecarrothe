@@ -9,7 +9,7 @@ import { Field, inputClasses } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { SelectField } from "@/components/ui/select-field";
-import { salvarVeiculo } from "@/lib/admin/acoes-veiculo";
+import { criarEtiqueta, salvarVeiculo } from "@/lib/admin/acoes-veiculo";
 import {
   esquemaVeiculo,
   OPCOES_CAMBIO,
@@ -25,7 +25,7 @@ import { cn } from "@/lib/cn";
 import { errosPorCampo, type ErrosCampos } from "@/lib/formularios/esquemas";
 import { mascaraAnoFabModelo, mascaraKmSufixo, mascaraReais } from "@/lib/mascaras";
 import type { Etiqueta } from "@/lib/status";
-import { Cartao, Opcionais, Previa, Selos, SeletorStatus } from "./blocos";
+import { Cartao, NovoItem, Opcionais, Previa, Selos, SeletorStatus } from "./blocos";
 import { FotosVeiculo, type FotoForm } from "./fotos-veiculo";
 
 /** Campos do desktop (28): 46px, raio 10, 400 15px, padding 12px (no mobile, os 52px dos formulários). */
@@ -40,11 +40,16 @@ const SELECT_DESKTOP = "lg:h-46 lg:rounded-10 lg:pl-12 lg:text-15 lg:[&>.icon]:t
 export function FormVeiculo({
   dados,
   opcionais: opcionaisIniciais,
+  etiquetas: etiquetasIniciais,
+  selos: selosIniciais,
   modelos,
   anoAtual,
 }: {
   dados: DadosFormVeiculo;
   opcionais: Opcional[];
+  /** Etiquetas e selos escritos no painel (listas compartilhadas, como os opcionais). */
+  etiquetas: Opcional[];
+  selos: Opcional[];
   modelos: Record<string, string[]>;
   anoAtual: number;
 }) {
@@ -52,6 +57,9 @@ export function FormVeiculo({
   const [campos, setCampos] = useState<CamposVeiculo>(dados.campos);
   const [fotos, setFotos] = useState<FotoForm[]>(() => dados.fotos.map((f) => ({ ...f, chave: f.path })));
   const [opcionais, setOpcionais] = useState(opcionaisIniciais);
+  const [etiquetas, setEtiquetas] = useState(etiquetasIniciais);
+  const [selosExtras, setSelosExtras] = useState(selosIniciais);
+  const [criandoEtiqueta, setCriandoEtiqueta] = useState(false);
   const [erros, setErros] = useState<ErrosCampos>({});
   const [geral, setGeral] = useState<string>();
   const [salvo, setSalvo] = useState<string>();
@@ -116,6 +124,12 @@ export function FormVeiculo({
 
   const campo = (nome: "versao" | "finalPlaca") => ({ name: nome, value: campos[nome], onValor: (v: string) => definir(nome, v), error: erros[nome] });
   const linhaPrevia = [campos.versao, campos.anoFabModelo, campos.km].filter(Boolean).join(" · ");
+  // Etiqueta escrita no painel: o campo guarda o id dela.
+  const etiquetaPersonalizada = etiquetas.find((e) => e.id === campos.etiqueta) ?? null;
+  const opcoesEtiqueta = [
+    ...OPCOES_ETIQUETA.filter((e) => e.value !== "nenhuma"),
+    ...etiquetas.map((e) => ({ value: e.id, label: e.nome })),
+  ];
   const sugestoes = modelos[campos.marca] ?? [];
   const ocupado = pendente || enviando;
 
@@ -342,7 +356,15 @@ export function FormVeiculo({
               }
               className="order-5 lg:order-none"
             >
-              <Selos valor={campos.selos} onValor={(v) => definir("selos", v)} ano={anoAtual} />
+              <Selos
+                valor={campos.selos}
+                onValor={(v) => definir("selos", v)}
+                ano={anoAtual}
+                extras={selosExtras}
+                onExtras={setSelosExtras}
+                valorExtras={campos.selosExtras}
+                onValorExtras={(v) => definir("selosExtras", v)}
+              />
             </Cartao>
 
             <div className="order-6 lg:order-none">
@@ -359,12 +381,36 @@ export function FormVeiculo({
                 name="etiqueta"
                 label="Etiqueta no catálogo"
                 placeholder="Nenhuma"
-                options={OPCOES_ETIQUETA.filter((e) => e.value !== "nenhuma")}
+                options={opcoesEtiqueta}
                 value={campos.etiqueta === "nenhuma" ? "" : campos.etiqueta}
                 onChange={(e) => definir("etiqueta", e.target.value || "nenhuma")}
                 className={SELECT_DESKTOP}
                 fieldClassName="mt-4 lg:mt-16"
               />
+              {/* "+ Criar etiqueta": etiqueta escrita pelo admin, disponível para todos os veículos, já escolhida neste. */}
+              {criandoEtiqueta ? (
+                <NovoItem
+                  rotulo="Texto da etiqueta"
+                  placeholder="Ex.: Oportunidade"
+                  maximo={20}
+                  criar={criarEtiqueta}
+                  onCriado={(e) => {
+                    if (!etiquetas.some((x) => x.id === e.id)) setEtiquetas([...etiquetas, e]);
+                    definir("etiqueta", e.id);
+                    setCriandoEtiqueta(false);
+                  }}
+                  onCancelar={() => setCriandoEtiqueta(false)}
+                  className="mt-8"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setCriandoEtiqueta(true)}
+                  className="flex h-44 items-center self-start text-14 font-semibold text-brand hover:underline lg:mt-4 lg:h-32"
+                >
+                  + Criar etiqueta
+                </button>
+              )}
               </div>
             </Cartao>
 
@@ -399,7 +445,8 @@ export function FormVeiculo({
             <Cartao titulo="Prévia no catálogo" className="hidden lg:flex [&>div:first-child]:lg:mb-14">
               <Previa
                 capa={fotos.find((f) => !f.enviando)?.url ?? null}
-                etiqueta={campos.etiqueta as Etiqueta}
+                etiqueta={etiquetaPersonalizada ? "personalizada" : (campos.etiqueta as Etiqueta)}
+                etiquetaTexto={etiquetaPersonalizada?.nome ?? null}
                 marca={campos.marca}
                 modelo={campos.modelo}
                 linha={linhaPrevia}

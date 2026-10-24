@@ -14,7 +14,17 @@ import type { Foto } from "@/lib/tipos";
  *   contador "1/12", etiqueta e pontos embaixo;
  * - desktop (22): foto 4:3 com raio 16, setas, contador e 6 miniaturas (a 6ª mostra "+N").
  */
-export function Galeria({ fotos, etiqueta, nome }: { fotos: readonly Foto[]; etiqueta: Etiqueta; nome: string }) {
+export function Galeria({
+  fotos,
+  etiqueta,
+  etiquetaTexto,
+  nome,
+}: {
+  fotos: readonly Foto[];
+  etiqueta: Etiqueta;
+  etiquetaTexto: string | null;
+  nome: string;
+}) {
   const trilha = useRef<HTMLDivElement>(null);
   const [atual, setAtual] = useState(0);
   const total = Math.max(fotos.length, 1);
@@ -99,7 +109,7 @@ export function Galeria({ fotos, etiqueta, nome }: { fotos: readonly Foto[]; eti
           ))}
         </div>
         {contador}
-        {etiqueta !== "nenhuma" && <EtiquetaBadge etiqueta={etiqueta} className="absolute top-12 left-12 lg:hidden" />}
+        <EtiquetaBadge etiqueta={etiqueta} texto={etiquetaTexto} className="absolute top-12 left-12 lg:hidden" />
         {seta("anterior")}
         {seta("proxima")}
       </div>

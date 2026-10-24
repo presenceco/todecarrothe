@@ -107,14 +107,19 @@ export async function listarPedidos(f: FiltrosLista<StatusPedido>) {
   return { linhas: (res.data ?? []).map(paraPedido), total: res.count ?? 0, contagens: { todos: todos.count ?? 0, ...contagens } };
 }
 
-export async function obterPedido(id: string): Promise<Pedido | null> {
+/** Pedido com as fotos do carro de entrada (URLs assinadas de 1 hora: o bucket "trocas" é privado). */
+export async function obterPedido(id: string): Promise<(Pedido & { fotos: string[] }) | null> {
   const { supabase } = await exigirAdmin();
-  const { data } = await supabase.from("pedidos_busca").select(CAMPOS).eq("id", id).maybeSingle();
-  return data ? paraPedido(data) : null;
+  const { data } = await supabase.from("pedidos_busca").select(`${CAMPOS}, pedido_fotos (path, ordem)`).eq("id", id).maybeSingle();
+  if (!data) return null;
+  const caminhos = [...data.pedido_fotos].sort((a, b) => a.ordem - b.ordem).map((f) => f.path);
+  const { data: assinadas } = caminhos.length ? await supabase.storage.from("trocas").createSignedUrls(caminhos, 3600) : { data: [] };
+  const fotos = (assinadas ?? []).map((a) => a.signedUrl).filter((u): u is string => !!u);
+  return { ...paraPedido(data), fotos };
 }
 
 /** Texto do "Copiar dados" (todos os dados do pedido). */
-export function textoPedido(p: Pedido) {
+export function textoPedido(p: Pedido & { fotos?: string[] }) {
   return [
     "Pedido de busca · Tô de Carro",
     `Recebido em ${dataHora(p.criadoEm)}`,
@@ -135,6 +140,7 @@ export function textoPedido(p: Pedido) {
         ]
       : []),
     `Troca: ${p.temTroca ? `Sim, ${p.trocaModelo ?? ""}${p.trocaAno ? ` ${p.trocaAno}` : ""}`.trim() : "Não"}`,
+    ...(p.temTroca && p.fotos ? [`Fotos do carro de entrada: ${p.fotos.length}`] : []),
     ...(p.anotacoes.trim() ? ["", `Anotações da loja: ${p.anotacoes.trim()}`] : []),
   ].join("\n");
 }

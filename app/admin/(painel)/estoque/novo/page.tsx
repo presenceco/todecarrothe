@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { FormVeiculo } from "@/components/admin/veiculo/form-veiculo";
 import { exigirAdmin } from "@/lib/admin/sessao";
-import { listarOpcionais, modelosPorMarca, novoVeiculo } from "@/lib/admin/veiculo";
+import { listarEtiquetas, listarOpcionais, listarSelos, modelosPorMarca, novoVeiculo } from "@/lib/admin/veiculo";
 import { anoAtual } from "@/lib/formato";
 
 export const metadata: Metadata = { title: "Cadastrar veículo" };
@@ -15,8 +15,8 @@ async function Novo({ searchParams }: { searchParams: Promise<Record<string, str
   const sp = await searchParams;
   await exigirAdmin();
   const consignacao = typeof sp.consignacao === "string" && UUID.test(sp.consignacao) ? sp.consignacao : undefined;
-  const [dados, opcionais, modelos] = await Promise.all([novoVeiculo(consignacao), listarOpcionais(), modelosPorMarca()]);
-  return <FormVeiculo key={dados.id} dados={dados} opcionais={opcionais} modelos={modelos} anoAtual={anoAtual()} />;
+  const [dados, opcionais, etiquetas, selos, modelos] = await Promise.all([novoVeiculo(consignacao), listarOpcionais(), listarEtiquetas(), listarSelos(), modelosPorMarca()]);
+  return <FormVeiculo key={dados.id} dados={dados} opcionais={opcionais} etiquetas={etiquetas} selos={selos} modelos={modelos} anoAtual={anoAtual()} />;
 }
 
 /** Cadastrar veículo (15/28 vazios). */

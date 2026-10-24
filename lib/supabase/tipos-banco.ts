@@ -119,6 +119,24 @@ export type Database = {
         }
         Relationships: []
       }
+      etiquetas_personalizadas: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       limites_envio: {
         Row: {
           criado_em: string
@@ -160,6 +178,38 @@ export type Database = {
           ordem?: number
         }
         Relationships: []
+      }
+      pedido_fotos: {
+        Row: {
+          created_at: string
+          id: string
+          ordem: number
+          path: string
+          pedido_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ordem: number
+          path: string
+          pedido_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ordem?: number
+          path?: string
+          pedido_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_fotos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos_busca"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pedidos_busca: {
         Row: {
@@ -224,6 +274,24 @@ export type Database = {
           troca_modelo?: string | null
           updated_at?: string
           whatsapp?: string
+        }
+        Relationships: []
+      }
+      selos_personalizados: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
         }
         Relationships: []
       }
@@ -372,6 +440,36 @@ export type Database = {
           },
         ]
       }
+      veiculo_selos: {
+        Row: {
+          selo_id: string
+          veiculo_id: string
+        }
+        Insert: {
+          selo_id: string
+          veiculo_id: string
+        }
+        Update: {
+          selo_id?: string
+          veiculo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veiculo_selos_selo_id_fkey"
+            columns: ["selo_id"]
+            isOneToOne: false
+            referencedRelation: "selos_personalizados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "veiculo_selos_veiculo_id_fkey"
+            columns: ["veiculo_id"]
+            isOneToOne: false
+            referencedRelation: "veiculos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       veiculos: {
         Row: {
           ano_fabricacao: number
@@ -382,6 +480,7 @@ export type Database = {
           cor: string
           created_at: string
           etiqueta: string
+          etiqueta_personalizada_id: string | null
           final_placa: string
           id: string
           km: number
@@ -406,6 +505,7 @@ export type Database = {
           cor: string
           created_at?: string
           etiqueta?: string
+          etiqueta_personalizada_id?: string | null
           final_placa: string
           id?: string
           km: number
@@ -430,6 +530,7 @@ export type Database = {
           cor?: string
           created_at?: string
           etiqueta?: string
+          etiqueta_personalizada_id?: string | null
           final_placa?: string
           id?: string
           km?: number
@@ -451,6 +552,13 @@ export type Database = {
             columns: ["consignacao_id"]
             isOneToOne: false
             referencedRelation: "consignacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "veiculos_etiqueta_personalizada_id_fkey"
+            columns: ["etiqueta_personalizada_id"]
+            isOneToOne: false
+            referencedRelation: "etiquetas_personalizadas"
             referencedColumns: ["id"]
           },
         ]

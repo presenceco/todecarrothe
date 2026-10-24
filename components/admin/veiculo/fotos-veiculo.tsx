@@ -15,11 +15,11 @@ import {
 import { arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useId, useRef, useState } from "react";
-import { prepararFoto } from "@/components/formularios/fotos-consignacao";
+import { prepararFoto } from "@/components/formularios/fotos-cliente";
 import { Icon } from "@/components/ui/icon";
 import { MAX_FOTOS_VEICULO } from "@/lib/admin/esquema-veiculo";
 import { cn } from "@/lib/cn";
-import { FOTOS_CONSIGNACAO } from "@/lib/formularios/esquemas";
+import { FOTOS_CLIENTE } from "@/lib/formularios/esquemas";
 import { urlFotoVeiculo } from "@/lib/supabase/config";
 import { clienteNavegador } from "@/lib/supabase/navegador";
 
@@ -32,7 +32,7 @@ export type FotoForm = {
   enviando?: boolean;
 };
 
-const TIPOS = FOTOS_CONSIGNACAO.tipos as readonly string[];
+const TIPOS = FOTOS_CLIENTE.tipos as readonly string[];
 /** No mobile a grade mostra 6 miniaturas; a 6ª leva o "+N" e abre as demais (15). */
 const VISIVEIS_MOBILE = 6;
 
@@ -157,7 +157,7 @@ export function FotosVeiculo({
     const aceitas: File[] = [];
     for (const arquivo of Array.from(lista)) {
       if (!TIPOS.includes(arquivo.type)) motivos.push(`${arquivo.name}: use JPG ou PNG.`);
-      else if (arquivo.size > FOTOS_CONSIGNACAO.tamanhoMaximo) motivos.push(`${arquivo.name}: passa de 10 MB.`);
+      else if (arquivo.size > FOTOS_CLIENTE.tamanhoMaximo) motivos.push(`${arquivo.name}: passa de 10 MB.`);
       else if (aceitas.length >= restantes) motivos.push(`${arquivo.name}: o limite é de ${MAX_FOTOS_VEICULO} fotos.`);
       else aceitas.push(arquivo);
     }

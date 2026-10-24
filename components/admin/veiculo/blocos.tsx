@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { EtiquetaBadge, StatusBadge } from "@/components/ui/badges";
 import { Icon } from "@/components/ui/icon";
-import { criarOpcional } from "@/lib/admin/acoes-veiculo";
+import { criarOpcional, criarSelo, type RespostaCriarItem } from "@/lib/admin/acoes-veiculo";
 import type { Opcional } from "@/lib/admin/veiculo";
 import { cn } from "@/lib/cn";
 import { STATUS_VEICULO, type Etiqueta, type StatusVeiculo } from "@/lib/status";
@@ -81,36 +81,165 @@ export function SeletorStatus({ valor, onValor }: { valor: string; onValor: (v: 
   );
 }
 
-/** Selos verificados (15/28): pílulas que ligam e desligam. Ligado: #E5EEFB, texto azul, borda #B9CEF0. */
-export function Selos({ valor, onValor, ano }: { valor: string[]; onValor: (v: string[]) => void; ano: number }) {
+/** Pílula de selo que liga e desliga. Ligado: #E5EEFB, texto azul, borda #B9CEF0. */
+function PilulaSelo({ rotulo, ligado, onAlternar }: { rotulo: string; ligado: boolean; onAlternar: () => void }) {
+  return (
+    <label
+      className={cn(
+        "pressable box-border flex min-h-48 max-w-full cursor-pointer items-center gap-8 rounded-pill border py-6 pr-14 pl-10 text-14 font-semibold lg:min-h-42",
+        "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand",
+        ligado ? "border-brand-200 bg-brand-50 text-brand" : "border-gray-200 bg-white text-gray-600 hover:border-gray-400",
+      )}
+    >
+      <input type="checkbox" checked={ligado} onChange={onAlternar} className="sr-only" />
+      <Icon name="check_circle" size={20} className={cn(ligado ? "icon-fill lg:[font-variation-settings:'FILL'_0]" : "text-gray-400")} />
+      <span className="min-w-0 break-words">{rotulo}</span>
+    </label>
+  );
+}
+
+/**
+ * Selos verificados (15/28): pílulas que ligam e desligam. Depois dos fixos vêm os escritos no painel;
+ * "+ Adicionar selo" cria um selo novo, disponível para todos os veículos, já ligado neste.
+ */
+export function Selos({
+  valor,
+  onValor,
+  ano,
+  extras,
+  onExtras,
+  valorExtras,
+  onValorExtras,
+}: {
+  valor: string[];
+  onValor: (v: string[]) => void;
+  ano: number;
+  extras: Opcional[];
+  onExtras: (l: Opcional[]) => void;
+  valorExtras: string[];
+  onValorExtras: (v: string[]) => void;
+}) {
+  const [criando, setCriando] = useState(false);
+  const alternar = (lista: string[], chave: string) => (lista.includes(chave) ? lista.filter((v) => v !== chave) : [...lista, chave]);
+
+  function criado(s: Opcional) {
+    if (!extras.some((x) => x.id === s.id)) onExtras([...extras, s]);
+    if (!valorExtras.includes(s.id)) onValorExtras([...valorExtras, s.id]);
+    setCriando(false);
+  }
+
   return (
     <fieldset className="min-w-0">
       <legend className="sr-only">Selos verificados</legend>
       <div className="flex flex-wrap gap-8 lg:gap-10">
-        {SELOS.map((s) => {
-          const ligado = valor.includes(s.chave);
-          return (
-            <label
-              key={s.chave}
-              className={cn(
-                "pressable box-border flex h-48 cursor-pointer items-center gap-8 rounded-pill border pr-14 pl-10 text-14 font-semibold whitespace-nowrap lg:h-42",
-                "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand",
-                ligado ? "border-brand-200 bg-brand-50 text-brand" : "border-gray-200 bg-white text-gray-600 hover:border-gray-400",
-              )}
-            >
-              <input
-                type="checkbox"
-                checked={ligado}
-                onChange={() => onValor(ligado ? valor.filter((v) => v !== s.chave) : [...valor, s.chave])}
-                className="sr-only"
-              />
-              <Icon name="check_circle" size={20} className={cn(ligado ? "icon-fill lg:[font-variation-settings:'FILL'_0]" : "text-gray-400")} />
-              {s.rotulo(ano)}
-            </label>
-          );
-        })}
+        {SELOS.map((s) => (
+          <PilulaSelo key={s.chave} rotulo={s.rotulo(ano)} ligado={valor.includes(s.chave)} onAlternar={() => onValor(alternar(valor, s.chave))} />
+        ))}
+        {extras.map((s) => (
+          <PilulaSelo key={s.id} rotulo={s.nome} ligado={valorExtras.includes(s.id)} onAlternar={() => onValorExtras(alternar(valorExtras, s.id))} />
+        ))}
+        {!criando && (
+          <button
+            type="button"
+            onClick={() => setCriando(true)}
+            className="pressable box-border flex h-48 items-center gap-6 rounded-pill border-[1.5px] border-dashed border-brand pr-14 pl-10 text-14 font-semibold whitespace-nowrap text-brand hover:bg-brand-100 lg:h-42"
+          >
+            <Icon name="add" size={20} />
+            Adicionar selo
+          </button>
+        )}
       </div>
+      {criando && (
+        <NovoItem
+          rotulo="Nome do selo"
+          placeholder="Ex.: Laudo cautelar aprovado"
+          maximo={40}
+          criar={criarSelo}
+          onCriado={criado}
+          onCancelar={() => setCriando(false)}
+          className="mt-12"
+        />
+      )}
     </fieldset>
+  );
+}
+
+/**
+ * Campo para criar um item das listas compartilhadas (opcional, selo, etiqueta): Enter ou "Adicionar" cria,
+ * Esc ou o X cancela. Se já existir um item com o mesmo nome, o servidor devolve o existente.
+ */
+export function NovoItem({
+  rotulo,
+  placeholder,
+  maximo,
+  criar,
+  onCriado,
+  onCancelar,
+  className,
+}: {
+  rotulo: string;
+  placeholder: string;
+  maximo: number;
+  criar: (nome: string) => Promise<RespostaCriarItem>;
+  onCriado: (item: Opcional) => void;
+  onCancelar: () => void;
+  className?: string;
+}) {
+  const [nome, setNome] = useState("");
+  const [erro, setErro] = useState<string>();
+  const [pendente, iniciar] = useTransition();
+
+  function adicionar() {
+    if (pendente || nome.trim().length < 2) return;
+    setErro(undefined);
+    iniciar(async () => {
+      const r = await criar(nome);
+      if (!r.ok) return setErro(r.erro);
+      setNome("");
+      onCriado({ id: r.id, nome: r.nome });
+    });
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-8", className)}>
+      <div className="flex gap-8">
+        <label className="min-w-0 flex-1">
+          <span className="sr-only">{rotulo}</span>
+          <input
+            autoFocus
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                adicionar();
+              }
+              if (e.key === "Escape") onCancelar();
+            }}
+            maxLength={maximo}
+            placeholder={placeholder}
+            className="box-border h-48 w-full rounded-12 border border-gray-200 px-14 text-16 outline-none focus:border-2 focus:border-brand lg:h-44 lg:text-15"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={adicionar}
+          disabled={pendente || nome.trim().length < 2}
+          className="pressable h-48 rounded-12 bg-brand px-16 text-15 font-bold text-white disabled:bg-gray-180 disabled:text-gray-500 lg:h-44"
+        >
+          Adicionar
+        </button>
+        <button
+          type="button"
+          onClick={onCancelar}
+          aria-label="Cancelar"
+          className="pressable flex size-48 flex-none items-center justify-center rounded-12 border border-gray-200 lg:size-44"
+        >
+          <Icon name="close" size={20} />
+        </button>
+      </div>
+      {erro && <p className="text-14 text-danger">{erro}</p>}
+    </div>
   );
 }
 
@@ -144,22 +273,13 @@ export function Opcionais({ lista, onLista, valor, onValor }: { lista: Opcional[
   const [aberto, setAberto] = useState(true);
   const [todos, setTodos] = useState(false);
   const [criando, setCriando] = useState(false);
-  const [nome, setNome] = useState("");
-  const [erro, setErro] = useState<string>();
-  const [pendente, iniciar] = useTransition();
   const alternar = (id: string) => onValor(valor.includes(id) ? valor.filter((v) => v !== id) : [...valor, id]);
 
-  function adicionar() {
-    setErro(undefined);
-    iniciar(async () => {
-      const r = await criarOpcional(nome);
-      if (!r.ok) return setErro(r.erro);
-      if (!lista.some((o) => o.id === r.id)) onLista([...lista, { id: r.id, nome: r.nome }]);
-      if (!valor.includes(r.id)) onValor([...valor, r.id]);
-      setNome("");
-      setCriando(false);
-      setTodos(true);
-    });
+  function criado(o: Opcional) {
+    if (!lista.some((x) => x.id === o.id)) onLista([...lista, o]);
+    if (!valor.includes(o.id)) onValor([...valor, o.id]);
+    setCriando(false);
+    setTodos(true);
   }
 
   const botaoNovo = (
@@ -207,45 +327,15 @@ export function Opcionais({ lista, onLista, valor, onValor }: { lista: Opcional[
           </button>
         )}
         {criando ? (
-          <div className="mt-8 flex flex-col gap-8 lg:mt-16">
-            <div className="flex gap-8">
-              <label className="min-w-0 flex-1">
-                <span className="sr-only">Nome do opcional</span>
-                <input
-                  autoFocus
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      adicionar();
-                    }
-                    if (e.key === "Escape") setCriando(false);
-                  }}
-                  maxLength={60}
-                  placeholder="Ex.: Teto panorâmico"
-                  className="box-border h-48 w-full rounded-12 border border-gray-200 px-14 text-16 outline-none focus:border-2 focus:border-brand lg:h-44 lg:text-15"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={adicionar}
-                disabled={pendente || nome.trim().length < 2}
-                className="pressable h-48 rounded-12 bg-brand px-16 text-15 font-bold text-white disabled:bg-gray-180 disabled:text-gray-500 lg:h-44"
-              >
-                Adicionar
-              </button>
-              <button
-                type="button"
-                onClick={() => setCriando(false)}
-                aria-label="Cancelar"
-                className="pressable flex size-48 flex-none items-center justify-center rounded-12 border border-gray-200 lg:size-44"
-              >
-                <Icon name="close" size={20} />
-              </button>
-            </div>
-            {erro && <p className="text-14 text-danger">{erro}</p>}
-          </div>
+          <NovoItem
+            rotulo="Nome do opcional"
+            placeholder="Ex.: Teto panorâmico"
+            maximo={60}
+            criar={criarOpcional}
+            onCriado={criado}
+            onCancelar={() => setCriando(false)}
+            className="mt-8 lg:mt-16"
+          />
         ) : (
           <button
             type="button"
@@ -265,6 +355,7 @@ export function Opcionais({ lista, onLista, valor, onValor }: { lista: Opcional[
 export function Previa({
   capa,
   etiqueta,
+  etiquetaTexto,
   marca,
   modelo,
   linha,
@@ -272,6 +363,7 @@ export function Previa({
 }: {
   capa: string | null;
   etiqueta: Etiqueta;
+  etiquetaTexto: string | null;
   marca: string;
   modelo: string;
   linha: string;
@@ -282,7 +374,7 @@ export function Previa({
       <div className="relative aspect-[4/3] bg-hatch">
         {/* eslint-disable-next-line @next/next/no-img-element -- prévia ao vivo, a foto pode ainda não ter passado pelo otimizador */}
         {capa && <img src={capa} alt="" className="absolute inset-0 size-full object-cover" />}
-        {etiqueta !== "nenhuma" && <EtiquetaBadge etiqueta={etiqueta} className="absolute top-10 left-10" />}
+        <EtiquetaBadge etiqueta={etiqueta} texto={etiquetaTexto} className="absolute top-10 left-10" />
       </div>
       <div className="p-14">
         <p className="truncate text-14 font-bold tracking-[0.08em] text-brand uppercase">{marca || "Marca"}</p>

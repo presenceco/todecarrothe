@@ -20,6 +20,8 @@ export type VeiculoResumo = {
   cambio: Cambio;
   preco: number;
   etiqueta: Etiqueta;
+  /** Texto da etiqueta personalizada (escrita pelo admin). */
+  etiquetaTexto: string | null;
   totalFotos: number;
   capa: Foto | null;
 };
@@ -37,6 +39,8 @@ export type VeiculoCatalogo = VeiculoResumo & {
 export type VeiculoDetalhe = VeiculoCatalogo & {
   finalPlaca: string;
   selos: Selo[];
+  /** Selos escritos pelo admin, depois dos fixos. */
+  selosExtras: string[];
   opcionais: string[];
   fotos: Foto[];
 };
