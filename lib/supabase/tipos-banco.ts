@@ -299,16 +299,17 @@ export type Database = {
         Row: {
           consentimento_em: string
           consentimento_versao: string
-          cpf: string
+          cpf: string | null
           created_at: string
+          dados_sensiveis_apagados_em: string | null
           entrada: number
           id: string
-          nascimento: string
+          nascimento: string | null
           nome: string
           parcela_desejada: number | null
           possui_cnh: boolean
           prazo_meses: number
-          renda: number
+          renda: number | null
           status: string
           tem_troca: boolean
           troca_ano: number | null
@@ -323,16 +324,17 @@ export type Database = {
         Insert: {
           consentimento_em: string
           consentimento_versao: string
-          cpf: string
+          cpf?: string | null
           created_at?: string
+          dados_sensiveis_apagados_em?: string | null
           entrada: number
           id?: string
-          nascimento: string
+          nascimento?: string | null
           nome: string
           parcela_desejada?: number | null
           possui_cnh: boolean
           prazo_meses: number
-          renda: number
+          renda?: number | null
           status?: string
           tem_troca: boolean
           troca_ano?: number | null
@@ -347,16 +349,17 @@ export type Database = {
         Update: {
           consentimento_em?: string
           consentimento_versao?: string
-          cpf?: string
+          cpf?: string | null
           created_at?: string
+          dados_sensiveis_apagados_em?: string | null
           entrada?: number
           id?: string
-          nascimento?: string
+          nascimento?: string | null
           nome?: string
           parcela_desejada?: number | null
           possui_cnh?: boolean
           prazo_meses?: number
-          renda?: number
+          renda?: number | null
           status?: string
           tem_troca?: boolean
           troca_ano?: number | null

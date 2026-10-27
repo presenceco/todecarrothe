@@ -96,10 +96,9 @@ export async function GET(request: Request) {
   const agora = new Date();
   const { data: limpas, error } = await servico
     .from("simulacoes")
-    // TODO: tirar o cast depois de `npm run db:tipos` (as colunas aceitam null desde a migration de 27/10/2026).
-    .update({ cpf: null, nascimento: null, renda: null, dados_sensiveis_apagados_em: agora.toISOString() } as never)
+    .update({ cpf: null, nascimento: null, renda: null, dados_sensiveis_apagados_em: agora.toISOString() })
     .lt("created_at", limiteDadosSensiveis(agora).toISOString())
-    .is("dados_sensiveis_apagados_em" as never, null)
+    .is("dados_sensiveis_apagados_em", null)
     .select("id");
   if (error) {
     console.error("limpeza simulacoes", resumoErro(error));
