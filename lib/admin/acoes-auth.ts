@@ -7,10 +7,10 @@ import { dentroDoLimite, type Limite } from "@/lib/formularios/protecao";
 import { resumoErro } from "@/lib/log";
 import { clienteServidor } from "@/lib/supabase/servidor";
 import { COOKIE_SESSAO_CURTA } from "./cookies";
-import { emailDoPainel } from "./entrada";
+import { emailDoAdmin, emailDoPainel } from "./entrada";
 
 export type EstadoEntrar = { erro?: string; email?: string };
-export type EstadoEsqueci = { erro?: string; enviado?: boolean; email?: string };
+export type EstadoEsqueci = { enviado?: boolean };
 export type EstadoRedefinir = { erro?: string };
 
 const ERRO_CREDENCIAIS = "E-mail ou senha incorretos.";
@@ -18,6 +18,8 @@ const ERRO_LIMITE = "Muitas tentativas seguidas. Aguarde alguns minutos e tente 
 
 /** Tentativas de login por IP (o hash do IP é o mesmo dos formulários públicos). */
 const LIMITE_LOGIN: Limite = { quantidade: 5, janela: "15 minutes" };
+/** Pedidos de "Esqueci minha senha" por IP. */
+const LIMITE_REDEFINICAO: Limite = { quantidade: 3, janela: "1 hour" };
 
 /** Só volta para páginas do próprio painel (evita redirecionamento aberto). */
 function destinoSeguro(volta: FormDataEntryValue | null) {
@@ -60,24 +62,26 @@ export async function entrar(_anterior: EstadoEntrar, dados: FormData): Promise<
 }
 
 /**
- * "Esqueci minha senha": pede ao Supabase o e-mail de redefinição. A resposta é a mesma exista ou não
- * a conta, para não revelar quais e-mails estão cadastrados.
+ * "Esqueci minha senha", só para o dono: o link vai sempre para o e-mail do admin no Supabase Auth; nada
+ * do que vier no formulário é usado. Até 3 pedidos por hora por IP. A resposta é sempre a mesma (enviado
+ * ou não, com ou sem admin, acima do limite ou não), sem mostrar o e-mail.
  */
-export async function pedirRedefinicao(_anterior: EstadoEsqueci, dados: FormData): Promise<EstadoEsqueci> {
-  // Com ADMIN_EMAIL, o link vai para o e-mail do painel sem precisar digitá-lo (e sem mostrá-lo na tela).
-  const digitado = String(dados.get("email") ?? "").trim().toLowerCase();
-  const email = digitado || emailDoPainel() || "";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { erro: "Informe um e-mail válido.", email: digitado };
-  const supabase = await clienteServidor();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/admin/auth/confirmar?proximo=/admin/redefinir-senha`,
-  });
-  if (error?.status === 429) return { erro: ERRO_LIMITE, email: digitado };
-  if (error && error.status !== 400 && error.status !== 404) {
-    console.error("pedirRedefinicao", resumoErro(error));
-    return { erro: "Não foi possível enviar agora. Tente de novo em alguns minutos.", email: digitado };
+export async function pedirRedefinicao(): Promise<EstadoEsqueci> {
+  try {
+    if (await dentroDoLimite("redefinicao", LIMITE_REDEFINICAO)) {
+      const email = await emailDoAdmin();
+      if (email) {
+        const supabase = await clienteServidor();
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${siteUrl}/admin/auth/confirmar?proximo=/admin/redefinir-senha`,
+        });
+        if (error) console.error("pedirRedefinicao", resumoErro(error));
+      }
+    }
+  } catch (e) {
+    console.error("pedirRedefinicao", resumoErro(e));
   }
-  return { enviado: true, email: digitado };
+  return { enviado: true };
 }
 
 /** Nova senha (depois do link do e-mail). Mesmas regras do Supabase: 10+ caracteres, maiúscula, minúscula e número. */

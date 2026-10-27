@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { TextInput } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { pedirRedefinicao, redefinirSenha, type EstadoEsqueci, type EstadoRedefinir } from "@/lib/admin/acoes-auth";
 import { AvisoEntrada, BotaoEntrada, CampoSenha } from "./campos-entrada";
@@ -17,42 +16,21 @@ function VoltarAoLogin() {
 }
 
 /**
- * "Esqueci minha senha": e-mail → link do Supabase. Depois do envio, mostra o aviso no lugar do formulário.
- * `soSenha` (ADMIN_EMAIL configurado): não pede o e-mail; o link vai para o e-mail do painel.
+ * "Esqueci minha senha", só para o dono: sem campo de e-mail; o link vai para o e-mail do admin. Depois do
+ * pedido, mostra sempre o mesmo aviso no lugar do formulário, sem revelar o e-mail.
  */
-export function FormEsqueci({ soSenha }: { soSenha?: boolean }) {
+export function FormEsqueci() {
   const [estado, acao, pendente] = useActionState<EstadoEsqueci, FormData>(pedirRedefinicao, {});
   if (estado.enviado) {
     return (
       <>
-        <AvisoEntrada
-          tom="info"
-          mensagem={
-            estado.email
-              ? `Se ${estado.email} for o e-mail do painel, você vai receber um link para criar uma senha nova. Confira também o spam.`
-              : "Enviamos um link para o e-mail cadastrado do painel. Abra o e-mail e crie uma senha nova. Confira também o spam."
-          }
-        />
+        <AvisoEntrada tom="info" mensagem="Se houver um admin cadastrado, o link foi enviado para o e-mail dele." />
         <VoltarAoLogin />
       </>
     );
   }
   return (
     <form action={acao} className="contents">
-      <AvisoEntrada mensagem={estado.erro} />
-      {!soSenha && (
-        <TextInput
-          name="email"
-          label="E-mail"
-          type="email"
-          autoComplete="username"
-          inputMode="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          required
-          defaultValue={estado.email}
-        />
-      )}
       <BotaoEntrada pendente={pendente}>Enviar link</BotaoEntrada>
       <VoltarAoLogin />
     </form>
