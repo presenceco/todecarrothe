@@ -9,7 +9,8 @@ import { clienteServico } from "@/lib/supabase/servico";
  * `Authorization: Bearer ${CRON_SECRET}`, que a Vercel envia sozinha quando a variável existe.
  *
  * 1. LGPD: apaga CPF, nascimento e renda das simulações enviadas há mais de 30 dias.
- * 2. Envios abandonados: nos buckets consignacoes e trocas, apaga os arquivos com mais de 24 h que não
+ * 2. Apaga os hashes de IP do limite de envios com mais de 24 h.
+ * 3. Envios abandonados: nos buckets consignacoes e trocas, apaga os arquivos com mais de 24 h que não
  *    estão registrados (pasta de um registro que não existe mais, ou foto que não chegou a ser confirmada).
  */
 
@@ -105,7 +106,17 @@ export async function GET(request: Request) {
     resultado.erros.push("simulacoes");
   } else resultado.simulacoesLimpas = limpas.length;
 
-  // 2. Envios abandonados nos buckets privados.
+  // 2. Hash do IP dos limites de envio: só serve por 24 h (a política de privacidade promete até 2 dias).
+  const { error: erroLimites } = await servico
+    .from("limites_envio")
+    .delete()
+    .lt("criado_em", new Date(agora.getTime() - DIA_MS).toISOString());
+  if (erroLimites) {
+    console.error("limpeza limites_envio", resumoErro(erroLimites));
+    resultado.erros.push("limites_envio");
+  }
+
+  // 3. Envios abandonados nos buckets privados.
   for (const def of BUCKETS) {
     try {
       resultado.fotosApagadas[def.bucket] = await limparBucket(servico, def);
