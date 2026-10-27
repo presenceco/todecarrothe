@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BotaoWhatsapp, DetalheMobile, DetalhePainel, SecaoMobile, SecaoPainel, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
-import { BotaoCopiar, StatusEscolha } from "@/components/admin/detalhe/interativos";
+import { BotaoCopiar, ExcluirRegistro, StatusEscolha } from "@/components/admin/detalhe/interativos";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { BASE_SIMULACOES, FotoSimulacao, ListaSimulacoes, OPCOES_STATUS_SIMULACAO, whatsappSimulacao } from "@/components/admin/simulacoes/lista-simulacoes";
 import { Icon } from "@/components/ui/icon";
 import { hrefLista, lerFiltrosLista } from "@/lib/admin/filtros";
 import { contarNovos, exigirAdmin } from "@/lib/admin/sessao";
-import { cpfMascarado, dataNascimento, listarSimulacoes, obterSimulacao, STATUS_SIMULACOES, textoSimulacao, type Simulacao } from "@/lib/admin/simulacoes";
-import { dataHora, moeda, telefone } from "@/lib/formato";
+import { cpfMascarado, dataNascimento, listarSimulacoes, obterSimulacao, STATUS_SIMULACOES, textoApagado, textoSimulacao, type Simulacao } from "@/lib/admin/simulacoes";
+import { dataHora, diaMes, moeda, telefone } from "@/lib/formato";
+import { apagamentoDadosSensiveis } from "@/lib/lgpd";
 
 export const metadata: Metadata = { title: "Simulação" };
 
@@ -44,14 +45,22 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
   if (!s) notFound();
 
   const voltar = hrefLista(BASE_SIMULACOES, filtros, {});
+  // LGPD: CPF, nascimento e renda são apagados 30 dias após o envio; o resto do histórico fica.
+  const apagado = <span className="font-medium text-gray-500">{textoApagado(s)}</span>;
   const pessoais: ItemDetalhe[] = [
     { rotulo: "Nome completo", valor: s.nome, largo: true },
-    { rotulo: "CPF", valor: cpfMascarado(s.cpf) },
-    { rotulo: "Data de nascimento", valor: dataNascimento(s.nascimento) },
+    { rotulo: "CPF", valor: s.cpf ? cpfMascarado(s.cpf) : apagado },
+    { rotulo: "Data de nascimento", valor: s.nascimento ? dataNascimento(s.nascimento) : apagado },
     { rotulo: "WhatsApp", valor: telefone(s.whatsapp) },
-    { rotulo: "Renda mensal", valor: moeda(s.renda) },
+    { rotulo: "Renda mensal", valor: s.renda !== null ? moeda(s.renda) : apagado },
     { rotulo: "Possui CNH", valor: s.possuiCnh ? "Sim" : "Não" },
   ];
+  const avisoPrazo = s.dadosApagadosEm ? null : (
+    <p className="mt-12 flex items-center gap-6 text-14 text-gray-500">
+      <Icon name="schedule" size={18} />
+      CPF, nascimento e renda serão apagados em {diaMes(apagamentoDadosSensiveis(s.criadoEm))}
+    </p>
+  );
   const financiamento: ItemDetalhe[] = [
     ...(s.veiculo ? [] : [{ rotulo: "Valor aproximado do carro", valor: moeda(s.valorAproximado ?? 0), largo: true }]),
     { rotulo: "Valor de entrada", valor: moeda(s.entrada) },
@@ -63,6 +72,16 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
   );
   const texto = textoSimulacao(s);
   const whatsapp = whatsappSimulacao(s);
+  // Exclusão a pedido do cliente (LGPD).
+  const excluir = (
+    <ExcluirRegistro
+      lista="simulacoes"
+      id={s.id}
+      titulo={`Excluir a simulação de ${s.nome}?`}
+      texto="Apaga todos os dados desta simulação. Não dá para desfazer."
+      voltarPara={voltar}
+    />
+  );
   const semLargo = (itens: ItemDetalhe[]) => itens.map((i) => ({ ...i, largo: false }));
 
   return (
@@ -85,7 +104,9 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         }
       >
         <VeiculoSimulacao s={s} variante="painel" />
-        <SecaoPainel titulo="Dados pessoais" itens={semLargo(pessoais)} />
+        <SecaoPainel titulo="Dados pessoais" itens={semLargo(pessoais)}>
+          {avisoPrazo}
+        </SecaoPainel>
         <SecaoPainel titulo="Financiamento" itens={semLargo(financiamento)} />
         <SecaoPainel
           titulo="Troca"
@@ -100,6 +121,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
             Autorizou o uso dos dados para simulação de crédito
           </p>
         )}
+        {excluir}
       </DetalhePainel>
 
       {/* Mobile: página cheia (19). */}
@@ -117,7 +139,9 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         }
       >
         <VeiculoSimulacao s={s} variante="mobile" />
-        <SecaoMobile titulo="Dados pessoais" itens={pessoais} />
+        <SecaoMobile titulo="Dados pessoais" itens={pessoais}>
+          {avisoPrazo}
+        </SecaoMobile>
         <SecaoMobile titulo="Financiamento" itens={financiamento} />
         <SecaoMobile
           titulo="Troca"
@@ -137,6 +161,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
             Autorizou o uso dos dados para simulação de crédito
           </p>
         )}
+        {excluir}
       </DetalheMobile>
     </>
   );

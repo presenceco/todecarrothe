@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DetalheMobile, DetalhePainel, FotosEnviadas, SecaoMobile, SecaoPainel, BotaoWhatsapp, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
-import { Anotacoes, BotaoCopiar, StatusEscolha } from "@/components/admin/detalhe/interativos";
+import { Anotacoes, BotaoCopiar, ExcluirRegistro, StatusEscolha } from "@/components/admin/detalhe/interativos";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { BASE_PEDIDOS, ListaPedidos, OPCOES_STATUS_PEDIDO, whatsappPedido } from "@/components/admin/pedidos/lista-pedidos";
 import { hrefLista, lerFiltrosLista } from "@/lib/admin/filtros";
@@ -53,6 +53,16 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
   const status = (variante: "escuro" | "claro") => <StatusEscolha lista="pedidos" id={p.id} atual={p.status} opcoes={OPCOES_STATUS_PEDIDO} variante={variante} />;
   const texto = textoPedido(p);
   const whatsapp = whatsappPedido(p);
+  // Exclusão a pedido do cliente (LGPD): apaga o pedido e as fotos do carro de entrada.
+  const excluir = (
+    <ExcluirRegistro
+      lista="pedidos"
+      id={p.id}
+      titulo={`Excluir o pedido de ${p.nome}?`}
+      texto="Apaga os dados do cliente e as fotos enviadas. Não dá para desfazer."
+      voltarPara={voltar}
+    />
+  );
 
   return (
     <>
@@ -89,6 +99,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         <SecaoPainel titulo="Anotações da loja">
           <Anotacoes lista="pedidos" id={p.id} inicial={p.anotacoes} placeholder={PLACEHOLDER} variante="painel" />
         </SecaoPainel>
+        {excluir}
       </DetalhePainel>
 
       {/* Mobile: página cheia (17). */}
@@ -116,6 +127,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         <SecaoMobile titulo="Anotações da loja" className="flex flex-col gap-10 [&>h2]:mb-0">
           <Anotacoes lista="pedidos" id={p.id} inicial={p.anotacoes} placeholder={PLACEHOLDER} variante="cartao" />
         </SecaoMobile>
+        {excluir}
       </DetalheMobile>
     </>
   );

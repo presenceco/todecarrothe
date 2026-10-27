@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BASE_CONSIGNACOES, ListaConsignacoes, OPCOES_STATUS_CONSIGNACAO, whatsappConsignacao } from "@/components/admin/consignacoes/lista-consignacoes";
 import { BotaoWhatsapp, DetalheMobile, DetalhePainel, FotosEnviadas, SecaoMobile, SecaoPainel, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
-import { Anotacoes, BotaoCopiar, StatusEscolha } from "@/components/admin/detalhe/interativos";
+import { Anotacoes, BotaoCopiar, ExcluirRegistro, StatusEscolha } from "@/components/admin/detalhe/interativos";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { Icon } from "@/components/ui/icon";
 import { FORMA, listarConsignacoes, obterConsignacao, rotuloCambio, STATUS_CONSIGNACOES, textoConsignacao, type Consignacao } from "@/lib/admin/consignacoes";
@@ -86,6 +86,16 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
   const status = (variante: "escuro" | "claro") => <StatusEscolha lista="consignacoes" id={c.id} atual={c.status} opcoes={OPCOES_STATUS_CONSIGNACAO} variante={variante} />;
   const texto = textoConsignacao(c);
   const whatsapp = whatsappConsignacao(c);
+  // Exclusão a pedido do cliente (LGPD): apaga a consignação e as fotos; o veículo cadastrado a partir dela fica.
+  const excluir = (
+    <ExcluirRegistro
+      lista="consignacoes"
+      id={c.id}
+      titulo={`Excluir a consignação de ${c.nome}?`}
+      texto={`Apaga os dados do cliente e as fotos enviadas. Não dá para desfazer.${veiculoId ? " O veículo cadastrado a partir dela continua no estoque." : ""}`}
+      voltarPara={voltar}
+    />
+  );
   const semLargo = (itens: ItemDetalhe[]) => itens.map((i) => ({ ...i, largo: i.rotulo === "Detalhes informados" }));
 
   return (
@@ -117,6 +127,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         <SecaoPainel titulo="Anotações da loja">
           <Anotacoes lista="consignacoes" id={c.id} inicial={c.anotacoes} placeholder={PLACEHOLDER} variante="painel" />
         </SecaoPainel>
+        {excluir}
       </DetalhePainel>
 
       {/* Mobile: página cheia (36). */}
@@ -144,6 +155,7 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         <SecaoMobile titulo="Anotações da loja" className="flex flex-col gap-10 [&>h2]:mb-0">
           <Anotacoes lista="consignacoes" id={c.id} inicial={c.anotacoes} placeholder={PLACEHOLDER} variante="cartao" />
         </SecaoMobile>
+        {excluir}
       </DetalheMobile>
     </>
   );

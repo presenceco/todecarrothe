@@ -1,6 +1,7 @@
 import "server-only";
 import { mascararCpf, formatarCpf } from "@/lib/cpf";
-import { anoFabModelo, dataHora, km, moeda, telefone } from "@/lib/formato";
+import { anoFabModelo, dataHora, diaMes, km, moeda, telefone } from "@/lib/formato";
+import { apagamentoDadosSensiveis } from "@/lib/lgpd";
 import { STATUS_SIMULACAO, type StatusSimulacao } from "@/lib/status";
 import { urlFotoVeiculo } from "@/lib/supabase/config";
 import { POR_PAGINA, termoBusca, type FiltrosLista } from "./filtros";
@@ -23,10 +24,11 @@ export type VeiculoSimulacao = {
 export type Simulacao = {
   id: string;
   nome: string;
-  cpf: string;
-  nascimento: string;
+  /** CPF, nascimento e renda: null depois de apagados (30 dias após o envio, LGPD). */
+  cpf: string | null;
+  nascimento: string | null;
   whatsapp: string;
-  renda: number;
+  renda: number | null;
   entrada: number;
   prazo: number;
   /** Parcela mensal que o cliente busca (opcional). */
@@ -38,20 +40,22 @@ export type Simulacao = {
   consentimento: boolean;
   status: StatusSimulacao;
   criadoEm: string;
+  /** Quando CPF, nascimento e renda foram apagados; null enquanto estão guardados. */
+  dadosApagadosEm: string | null;
   veiculo: VeiculoSimulacao | null;
   valorAproximado: number | null;
 };
 
 const CAMPOS =
-  "id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, veiculo_fotos (path, ordem))";
+  "id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, dados_sensiveis_apagados_em, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, veiculo_fotos (path, ordem))";
 
 type Linha = {
   id: string;
   nome: string;
-  cpf: string;
-  nascimento: string;
+  cpf: string | null;
+  nascimento: string | null;
   whatsapp: string;
-  renda: number;
+  renda: number | null;
   entrada: number;
   prazo_meses: number;
   parcela_desejada: number | null;
@@ -62,6 +66,7 @@ type Linha = {
   consentimento_em: string | null;
   status: string;
   created_at: string;
+  dados_sensiveis_apagados_em: string | null;
   veiculo_nome: string | null;
   veiculo_preco: number | null;
   valor_aproximado: number | null;
@@ -85,7 +90,7 @@ function paraSimulacao(l: Linha): Simulacao {
     cpf: l.cpf,
     nascimento: l.nascimento,
     whatsapp: l.whatsapp,
-    renda: Number(l.renda),
+    renda: l.renda === null ? null : Number(l.renda),
     entrada: Number(l.entrada),
     prazo: l.prazo_meses,
     parcela: l.parcela_desejada === null ? null : Number(l.parcela_desejada),
@@ -96,6 +101,7 @@ function paraSimulacao(l: Linha): Simulacao {
     consentimento: !!l.consentimento_em,
     status: l.status as StatusSimulacao,
     criadoEm: l.created_at,
+    dadosApagadosEm: l.dados_sensiveis_apagados_em,
     valorAproximado: l.valor_aproximado === null ? null : Number(l.valor_aproximado),
     veiculo:
       l.veiculo_nome && l.veiculo_preco !== null
@@ -154,6 +160,9 @@ export async function obterSimulacao(id: string): Promise<Simulacao | null> {
 
 export const cpfMascarado = (cpf: string) => mascararCpf(cpf);
 
+/** No lugar de CPF, nascimento e renda depois da limpeza: "Apagado em 26/11 (LGPD)". */
+export const textoApagado = (s: Simulacao) => `Apagado em ${diaMes(s.dadosApagadosEm ?? apagamentoDadosSensiveis(s.criadoEm))} (LGPD)`;
+
 /** "Copiar dados": inclui o CPF completo, que a loja precisa para simular com os bancos (item 5 da seção 9). */
 export function textoSimulacao(s: Simulacao) {
   return [
@@ -164,10 +173,10 @@ export function textoSimulacao(s: Simulacao) {
     s.veiculo ? `Veículo: ${s.veiculo.nome} (${moeda(s.veiculo.preco)})` : `Sem veículo escolhido · valor aproximado: ${moeda(s.valorAproximado ?? 0)}`,
     "",
     `Nome: ${s.nome}`,
-    `CPF: ${formatarCpf(s.cpf)}`,
-    `Nascimento: ${dataNascimento(s.nascimento)}`,
+    `CPF: ${s.cpf ? formatarCpf(s.cpf) : textoApagado(s)}`,
+    `Nascimento: ${s.nascimento ? dataNascimento(s.nascimento) : textoApagado(s)}`,
     `WhatsApp: ${telefone(s.whatsapp)}`,
-    `Renda mensal: ${moeda(s.renda)}`,
+    `Renda mensal: ${s.renda !== null ? moeda(s.renda) : textoApagado(s)}`,
     `Possui CNH: ${s.possuiCnh ? "Sim" : "Não"}`,
     "",
     `Entrada: ${moeda(s.entrada)}`,

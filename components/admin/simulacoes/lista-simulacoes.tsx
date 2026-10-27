@@ -77,7 +77,7 @@ function CartaoSimulacao({ s, href }: { s: Simulacao; href: string }) {
         </div>
         <div className="min-w-0">
           <dt className="text-gray-500">Renda</dt>
-          <dd className="font-semibold tabular-nums">{moeda(s.renda)}</dd>
+          <dd className="font-semibold tabular-nums">{s.renda !== null ? moeda(s.renda) : "Apagada"}</dd>
         </div>
       </dl>
       <div className="flex gap-8">
@@ -137,7 +137,7 @@ function TabelaSimulacoes({ linhas, filtros, rodape }: { linhas: Simulacao[]; fi
             </div>
             <span role="cell">{moeda(s.entrada)}</span>
             <span role="cell">{s.prazo} meses</span>
-            <span role="cell">{moeda(s.renda)}</span>
+            <span role="cell" className={s.renda === null ? "text-gray-500" : undefined}>{s.renda !== null ? moeda(s.renda) : "Apagada"}</span>
             <span role="cell">
               <StatusBadge tom={st.tom} size="lg">
                 {st.rotulo}

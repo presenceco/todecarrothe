@@ -1,9 +1,11 @@
 "use client";
 
-import { useOptimistic, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useId, useOptimistic, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { mudarStatus, salvarAnotacoes, type Lista } from "@/lib/admin/acoes-listas";
+import { Sheet, SheetHandle } from "@/components/ui/sheet";
+import { excluirRegistro, mudarStatus, salvarAnotacoes, type Lista } from "@/lib/admin/acoes-listas";
 import { cn } from "@/lib/cn";
 import type { Tom } from "@/lib/status";
 
@@ -221,5 +223,94 @@ export function BotaoCopiar({ texto, variante, alto }: { texto: string; variante
       <Icon name={copiado ? "check" : "content_copy"} size={20} />
       <span aria-live="polite">{copiado ? "Copiado" : "Copiar dados"}</span>
     </Button>
+  );
+}
+
+/**
+ * "Excluir" no detalhe de simulações, pedidos e consignações (exclusão a pedido do cliente, LGPD). Abre a
+ * confirmação no padrão da tela 14: painel inferior no mobile, caixa centralizada no desktop. Depois de
+ * excluir, volta para a lista.
+ */
+export function ExcluirRegistro({
+  lista,
+  id,
+  titulo,
+  texto,
+  voltarPara,
+}: {
+  lista: Lista;
+  id: string;
+  /** "Excluir a simulação de Fulano?" */
+  titulo: string;
+  texto: string;
+  voltarPara: string;
+}) {
+  const router = useRouter();
+  const [aberto, setAberto] = useState(false);
+  const [erro, setErro] = useState<string>();
+  const [pendente, iniciar] = useTransition();
+  const idTitulo = useId();
+  const fechar = () => {
+    if (pendente) return;
+    setErro(undefined);
+    setAberto(false);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAberto(true)}
+        className="pressable flex h-48 items-center gap-8 self-start rounded-12 px-4 text-15 font-semibold text-danger hover:underline"
+      >
+        <Icon name="delete" size={20} />
+        Excluir
+      </button>
+      <Sheet
+        open={aberto}
+        onClose={fechar}
+        labelledBy={idTitulo}
+        centroNoDesktop
+        className="flex flex-col gap-14 rounded-t-24 bg-white px-20 pt-10 pb-[calc(28px+env(safe-area-inset-bottom,0px))] text-ink lg:p-28"
+      >
+        <div data-sheet-drag className="lg:hidden">
+          <SheetHandle />
+        </div>
+        <div aria-hidden="true" className="mt-10 flex size-56 items-center justify-center rounded-pill bg-danger-bg text-danger lg:mt-0">
+          <Icon name="delete" size={30} />
+        </div>
+        <h2 id={idTitulo} className="text-22 leading-125 font-bold break-words">
+          {titulo}
+        </h2>
+        <p className="text-16 leading-150 text-gray-700">{texto}</p>
+        {erro && (
+          <p role="alert" className="text-15 text-danger">
+            {erro}
+          </p>
+        )}
+        <div className="mt-8 grid grid-cols-2 gap-8">
+          <Button variant="neutral" size="lg" onClick={fechar} disabled={pendente}>
+            Cancelar
+          </Button>
+          <Button
+            size="lg"
+            disabled={pendente}
+            aria-busy={pendente}
+            onClick={() => {
+              setErro(undefined);
+              iniciar(async () => {
+                const r = await excluirRegistro(lista, id);
+                if (r.ok) router.replace(voltarPara);
+                else setErro(r.erro);
+              });
+            }}
+            className="gap-8 bg-danger text-white hover:bg-danger-hover"
+          >
+            {pendente && <Icon name="progress_activity" size={20} className="animate-spin" />}
+            Excluir
+          </Button>
+        </div>
+      </Sheet>
+    </>
   );
 }
