@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { obterVeiculo } from "@/lib/catalogo/consultas";
 import { CONSENTIMENTO_VERSAO } from "@/lib/consentimento";
+import { resumoErro } from "@/lib/log";
 import { clienteServico } from "@/lib/supabase/servico";
 import {
   errosPorCampo,
@@ -67,7 +68,7 @@ export async function enviarSimulacao(entrada: { veiculo: string | null; campos:
     consentimento_versao: CONSENTIMENTO_VERSAO,
   });
   if (error) {
-    console.error("enviarSimulacao", error);
+    console.error("enviarSimulacao", resumoErro(error));
     return { erros: {}, geral: MENSAGEM_FALHA };
   }
 
@@ -93,7 +94,7 @@ async function linksDeEnvio(bucket: BucketCliente, id: string, fotos: { tipo: st
     const path = `${id}/${String(i + 1).padStart(2, "0")}-${randomUUID()}.${extensao}`;
     const { data: assinado, error } = await storage.createSignedUploadUrl(path);
     if (error || !assinado) {
-      console.error(`linksDeEnvio ${bucket}`, error);
+      console.error(`linksDeEnvio ${bucket}`, resumoErro(error));
       break;
     }
     uploads.push({ path, token: assinado.token });
@@ -113,7 +114,7 @@ async function registrarFotos(
   const validos = entrada.paths.filter((p) => p.startsWith(`${entrada.id}/`) && existentes.has(p)).slice(0, FOTOS_CLIENTE.maximo);
   if (validos.length) {
     const { error } = await gravar(validos);
-    if (error) console.error(`registrarFotos ${bucket}`, error);
+    if (error) console.error(`registrarFotos ${bucket}`, resumoErro(error));
   }
   return { ok: true, total: validos.length };
 }
@@ -159,7 +160,7 @@ export async function enviarPedido(entrada: {
     .select("id")
     .single();
   if (error || !data) {
-    console.error("enviarPedido", error);
+    console.error("enviarPedido", resumoErro(error));
     return { erros: {}, geral: MENSAGEM_FALHA };
   }
   if (!d.fotos.length) redirect(resumo(d));
@@ -223,7 +224,7 @@ export async function enviarConsignacao(entrada: {
     .select("id")
     .single();
   if (error || !data) {
-    console.error("enviarConsignacao", error);
+    console.error("enviarConsignacao", resumoErro(error));
     return { erros: {}, geral: MENSAGEM_FALHA };
   }
 

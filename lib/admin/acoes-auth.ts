@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { siteUrl } from "@/lib/env";
+import { resumoErro } from "@/lib/log";
 import { clienteServidor } from "@/lib/supabase/servidor";
 import { COOKIE_SESSAO_CURTA } from "./cookies";
 import { emailDoPainel } from "./entrada";
@@ -36,7 +37,7 @@ export async function entrar(_anterior: EstadoEntrar, dados: FormData): Promise<
   const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
   if (error) {
     // Só o código do Supabase (nunca a senha), para diagnosticar recusas que não são de senha errada.
-    if (error.code !== "invalid_credentials") console.error("entrar", error.status, error.code, error.message);
+    if (error.code !== "invalid_credentials") console.error("entrar", resumoErro(error));
     return { erro: error.status === 429 ? ERRO_LIMITE : emailDoPainel() && !digitado ? "Senha incorreta." : ERRO_CREDENCIAIS, email: digitado };
   }
   if (data.user?.app_metadata?.role !== "admin") {
@@ -61,7 +62,7 @@ export async function pedirRedefinicao(_anterior: EstadoEsqueci, dados: FormData
   });
   if (error?.status === 429) return { erro: ERRO_LIMITE, email: digitado };
   if (error && error.status !== 400 && error.status !== 404) {
-    console.error("pedirRedefinicao", error);
+    console.error("pedirRedefinicao", resumoErro(error));
     return { erro: "Não foi possível enviar agora. Tente de novo em alguns minutos.", email: digitado };
   }
   return { enviado: true, email: digitado };
@@ -83,7 +84,7 @@ export async function redefinirSenha(_anterior: EstadoRedefinir, dados: FormData
   if (error) {
     if (error.code === "same_password") return { erro: "A nova senha precisa ser diferente da atual." };
     if (error.code === "weak_password") return { erro: "Essa senha é fraca. Use pelo menos 10 caracteres, com letra maiúscula, minúscula e número." };
-    console.error("redefinirSenha", error);
+    console.error("redefinirSenha", resumoErro(error));
     return { erro: "Não foi possível salvar a senha. Tente de novo." };
   }
   redirect("/admin/estoque");

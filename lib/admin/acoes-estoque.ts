@@ -2,6 +2,7 @@
 
 import { refresh, updateTag } from "next/cache";
 import { TAG_VEICULOS } from "@/lib/catalogo/consultas";
+import { resumoErro } from "@/lib/log";
 import { STATUS_VEICULO, type StatusVeiculo } from "@/lib/status";
 import { exigirAdmin } from "./sessao";
 
@@ -15,7 +16,7 @@ export async function mudarStatusVeiculo(id: string, status: StatusVeiculo): Pro
   const { supabase } = await exigirAdmin();
   const { error } = await supabase.from("veiculos").update({ status }).eq("id", id);
   if (error) {
-    console.error("mudarStatusVeiculo", error);
+    console.error("mudarStatusVeiculo", resumoErro(error));
     return { ok: false, erro: "Não foi possível mudar o status. Tente de novo." };
   }
   updateTag(TAG_VEICULOS);
@@ -43,14 +44,14 @@ export async function excluirVeiculo(id: string): Promise<Resultado> {
   if (caminhos.length) {
     const { error } = await supabase.storage.from("veiculos").remove(caminhos);
     if (error) {
-      console.error("excluirVeiculo storage", error);
+      console.error("excluirVeiculo storage", resumoErro(error));
       return { ok: false, erro: "Não foi possível apagar as fotos. Tente de novo." };
     }
   }
 
   const { error } = await supabase.from("veiculos").delete().eq("id", id);
   if (error) {
-    console.error("excluirVeiculo", error);
+    console.error("excluirVeiculo", resumoErro(error));
     return { ok: false, erro: "Não foi possível excluir. Tente de novo." };
   }
   updateTag(TAG_VEICULOS);

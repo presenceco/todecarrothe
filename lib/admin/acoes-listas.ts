@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { resumoErro } from "@/lib/log";
 import { STATUS_CONSIGNACAO, STATUS_PEDIDO, STATUS_SIMULACAO } from "@/lib/status";
 import { exigirAdmin } from "./sessao";
 
@@ -21,7 +22,7 @@ export async function mudarStatus(lista: Lista, id: string, status: string): Pro
   const { supabase } = await exigirAdmin();
   const { error } = await supabase.from(def.tabela).update({ status }).eq("id", id);
   if (error) {
-    console.error("mudarStatus", lista, error);
+    console.error("mudarStatus", lista, resumoErro(error));
     return { ok: false };
   }
   refresh();
@@ -34,6 +35,6 @@ export async function salvarAnotacoes(lista: Lista, id: string, texto: string): 
   if (!def?.anotacoes || !UUID.test(id) || texto.length > 5000) return { ok: false };
   const { supabase } = await exigirAdmin();
   const { error } = await supabase.from(def.tabela as "pedidos_busca" | "consignacoes").update({ anotacoes: texto }).eq("id", id);
-  if (error) console.error("salvarAnotacoes", lista, error);
+  if (error) console.error("salvarAnotacoes", lista, resumoErro(error));
   return { ok: !error };
 }

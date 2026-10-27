@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { refresh, updateTag } from "next/cache";
 import { TAG_VEICULOS } from "@/lib/catalogo/consultas";
 import { errosPorCampo, type ErrosCampos } from "@/lib/formularios/esquemas";
+import { resumoErro } from "@/lib/log";
 import { slugLivre, slugVeiculo } from "@/lib/slug";
 import { esquemaVeiculo, MAX_FOTOS_VEICULO, type CamposVeiculo } from "./esquema-veiculo";
 import { exigirAdmin } from "./sessao";
@@ -71,7 +72,7 @@ export async function salvarVeiculo(entrada: {
     ? await supabase.from("veiculos").insert({ id, ...linha, consignacao_id: entrada.consignacaoId })
     : await supabase.from("veiculos").update(linha).eq("id", id);
   if (gravacao.error) {
-    console.error("salvarVeiculo", gravacao.error);
+    console.error("salvarVeiculo", resumoErro(gravacao.error));
     return { ok: false, erros: {}, geral: FALHA };
   }
 
@@ -85,7 +86,7 @@ export async function salvarVeiculo(entrada: {
     if (!entrada.consignacaoId || !foto.path.startsWith(`${entrada.consignacaoId}/`)) continue;
     const destino = `${id}/${randomUUID()}.${foto.path.toLowerCase().endsWith(".png") ? "png" : "jpg"}`;
     const { error } = await supabase.storage.from("consignacoes").copy(foto.path, destino, { destinationBucket: "veiculos" });
-    if (error) console.error("salvarVeiculo copiar foto", error);
+    if (error) console.error("salvarVeiculo copiar foto", resumoErro(error));
     else finais.push(destino);
   }
 
@@ -94,7 +95,7 @@ export async function salvarVeiculo(entrada: {
     ? await supabase.from("veiculo_fotos").insert(finais.map((path, ordem) => ({ veiculo_id: id, path, ordem })))
     : { error: null };
   if (apagadas.error || inseridas.error) {
-    console.error("salvarVeiculo fotos", apagadas.error ?? inseridas.error);
+    console.error("salvarVeiculo fotos", resumoErro(apagadas.error ?? inseridas.error));
     return { ok: false, erros: {}, geral: FALHA };
   }
 
@@ -106,13 +107,13 @@ export async function salvarVeiculo(entrada: {
   await supabase.from("veiculo_opcionais").delete().eq("veiculo_id", id);
   if (d.opcionais.length) {
     const { error } = await supabase.from("veiculo_opcionais").insert(d.opcionais.map((opcional_id) => ({ veiculo_id: id, opcional_id })));
-    if (error) console.error("salvarVeiculo opcionais", error);
+    if (error) console.error("salvarVeiculo opcionais", resumoErro(error));
   }
 
   await supabase.from("veiculo_selos").delete().eq("veiculo_id", id);
   if (d.selosExtras.length) {
     const { error } = await supabase.from("veiculo_selos").insert(d.selosExtras.map((selo_id) => ({ veiculo_id: id, selo_id })));
-    if (error) console.error("salvarVeiculo selos", error);
+    if (error) console.error("salvarVeiculo selos", resumoErro(error));
   }
 
   updateTag(TAG_VEICULOS);
@@ -143,7 +144,7 @@ async function criarItem(
   const insercao = tabela === "opcionais" ? supabase.from(tabela).insert({ nome: limpo, ordem: 2000 }) : supabase.from(tabela).insert({ nome: limpo });
   const { data, error } = await insercao.select("id, nome").single();
   if (error || !data) {
-    console.error(`criarItem ${tabela}`, error);
+    console.error(`criarItem ${tabela}`, resumoErro(error));
     return { ok: false, erro: "Não foi possível criar. Tente de novo." };
   }
   return { ok: true, ...data };
