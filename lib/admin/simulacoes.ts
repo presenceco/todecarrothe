@@ -1,10 +1,11 @@
 import "server-only";
 import { mascararCpf, formatarCpf } from "@/lib/cpf";
 import { anoFabModelo, dataHora, diaMes, km, moeda, telefone } from "@/lib/formato";
+import { fotosPublicas } from "@/lib/fotos-veiculo";
 import { apagamentoDadosSensiveis } from "@/lib/lgpd";
 import { STATUS_SIMULACAO, type StatusSimulacao } from "@/lib/status";
-import { urlFotoVeiculo } from "@/lib/supabase/config";
 import { POR_PAGINA, termoBusca, type FiltrosLista } from "./filtros";
+import { urlsFotosVeiculo } from "./fotos-veiculo";
 import { exigirAdmin } from "./sessao";
 
 export const STATUS_SIMULACOES = Object.keys(STATUS_SIMULACAO) as StatusSimulacao[];
@@ -47,7 +48,7 @@ export type Simulacao = {
 };
 
 const CAMPOS =
-  "id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, dados_sensiveis_apagados_em, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, veiculo_fotos (path, ordem))";
+  "id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, dados_sensiveis_apagados_em, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, status, publicado, veiculo_fotos (path, ordem))";
 
 type Linha = {
   id: string;
@@ -77,13 +78,30 @@ type Linha = {
     ano_fabricacao: number;
     ano_modelo: number;
     km: number;
+    status: string;
+    publicado: boolean;
     veiculo_fotos: { path: string; ordem: number }[];
   } | null;
 };
 
+/**
+ * Capa do veículo de cada simulação: URL pública se o carro está no catálogo; assinada (bucket privado)
+ * se ele saiu (vendido, reservado ou rascunho).
+ */
+async function comCapas(supabase: Awaited<ReturnType<typeof exigirAdmin>>["supabase"], linhas: Linha[]) {
+  const simulacoes = linhas.map(paraSimulacao);
+  const capas = linhas.flatMap((l, i) => {
+    const v = l.veiculos;
+    const primeira = v?.veiculo_fotos.length ? [...v.veiculo_fotos].sort((a, b) => a.ordem - b.ordem)[0].path : null;
+    return v && primeira && simulacoes[i].veiculo ? [{ i, path: primeira, publica: fotosPublicas(v) }] : [];
+  });
+  const urls = await urlsFotosVeiculo(supabase, capas);
+  capas.forEach((c, k) => (simulacoes[c.i].veiculo!.capa = urls[k]));
+  return simulacoes;
+}
+
 function paraSimulacao(l: Linha): Simulacao {
   const v = l.veiculos;
-  const capa = v?.veiculo_fotos.length ? [...v.veiculo_fotos].sort((a, b) => a.ordem - b.ordem)[0].path : null;
   return {
     id: l.id,
     nome: l.nome,
@@ -112,7 +130,8 @@ function paraSimulacao(l: Linha): Simulacao {
             modeloVersao: v ? [v.modelo, v.versao].filter(Boolean).join(" ") : null,
             marcaModelo: v ? `${v.marca} ${v.modelo}` : null,
             anoKm: v ? `${anoFabModelo(v.ano_fabricacao, v.ano_modelo)} · ${km(v.km)}` : null,
-            capa: capa ? urlFotoVeiculo(capa) : null,
+            // Preenchida em comCapas (pode precisar de URL assinada).
+            capa: null,
           }
         : null,
   };
@@ -149,13 +168,13 @@ export async function listarSimulacoes(f: FiltrosLista<StatusSimulacao>) {
   // Página além da última (link antigo): lista vazia em vez de erro; a paginação mostra o intervalo certo.
   if (res.error && res.error.code !== "PGRST103") throw new Error(`Falha ao ler as simulações: ${res.error.message}`);
   const contagens = Object.fromEntries(STATUS_SIMULACOES.map((s, i) => [s, porStatus[i].count ?? 0])) as Record<StatusSimulacao, number>;
-  return { linhas: ((res.data ?? []) as unknown as Linha[]).map(paraSimulacao), total: res.count ?? 0, contagens: { todos: todos.count ?? 0, ...contagens } };
+  return { linhas: await comCapas(supabase, (res.data ?? []) as unknown as Linha[]), total: res.count ?? 0, contagens: { todos: todos.count ?? 0, ...contagens } };
 }
 
 export async function obterSimulacao(id: string): Promise<Simulacao | null> {
   const { supabase } = await exigirAdmin();
   const { data } = await supabase.from("simulacoes").select(CAMPOS).eq("id", id).maybeSingle();
-  return data ? paraSimulacao(data as unknown as Linha) : null;
+  return data ? (await comCapas(supabase, [data as unknown as Linha]))[0] : null;
 }
 
 export const cpfMascarado = (cpf: string) => mascararCpf(cpf);

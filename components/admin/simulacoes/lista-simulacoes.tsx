@@ -13,6 +13,7 @@ import { hrefLista, type FiltrosLista } from "@/lib/admin/filtros";
 import { STATUS_SIMULACOES, type Simulacao } from "@/lib/admin/simulacoes";
 import { cn } from "@/lib/cn";
 import { diaMes, hora, moeda, primeiroNome, telefone } from "@/lib/formato";
+import { urlAssinada } from "@/lib/fotos-veiculo";
 import { linkWhatsapp } from "@/lib/loja";
 import type { Contadores } from "@/lib/navegacao";
 import { STATUS_SIMULACAO, type StatusSimulacao } from "@/lib/status";
@@ -40,7 +41,7 @@ export function FotoSimulacao({ s, className, sizes }: { s: Simulacao; className
   }
   return (
     <span className={cn("relative flex-none overflow-hidden bg-hatch-sm", className)}>
-      {s.veiculo.capa && <Image src={s.veiculo.capa} alt="" fill sizes={sizes} className="object-cover" />}
+      {s.veiculo.capa && <Image src={s.veiculo.capa} alt="" fill sizes={sizes} unoptimized={urlAssinada(s.veiculo.capa)} className="object-cover" />}
     </span>
   );
 }

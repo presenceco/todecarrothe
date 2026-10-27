@@ -48,6 +48,8 @@ const nextConfig: NextConfig = {
   images: {
     // 90: foto do Show Automall em "Onde estamos", que perde nitidez com a compressão padrão.
     qualities: [75, 90],
+    // Fotos otimizadas ficam no cache por 5 minutos: a de um carro que saiu do catálogo para de abrir logo.
+    minimumCacheTTL: 300,
     remotePatterns: hostSupabase
       ? [{ protocol: "https", hostname: hostSupabase.hostname, pathname: "/storage/v1/object/public/veiculos/**" }]
       : [],

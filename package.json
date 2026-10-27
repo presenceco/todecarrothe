@@ -21,6 +21,7 @@
     "db:config": "node --env-file=.env.local scripts/supabase.ts config",
     "db:tipos": "node --env-file=.env.local scripts/supabase.ts tipos",
     "db:fotos": "node --env-file=.env.local scripts/seed-fotos.ts",
+    "db:mover-fotos": "node --env-file=.env.local scripts/mover-fotos-ocultas.ts",
     "criar-admin": "node --env-file=.env.local scripts/criar-admin.ts",
     "comparar:telas": "node --env-file-if-exists=.env.local scripts/comparar-telas.ts"
   },

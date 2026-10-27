@@ -1,13 +1,14 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { anoFabModelo, km as formatarKm } from "@/lib/formato";
+import { fotosPublicas } from "@/lib/fotos-veiculo";
 import { mascaraReais } from "@/lib/mascaras";
-import { urlFotoVeiculo } from "@/lib/supabase/config";
 import type { CamposVeiculo } from "./esquema-veiculo";
 import { CORES } from "./esquema-veiculo";
+import { urlsFotosVeiculo } from "./fotos-veiculo";
 import { exigirAdmin } from "./sessao";
 
-/** Foto no formulário: já do veículo (bucket público) ou vinda da consignação (privado, copiada ao salvar). */
+/** Foto no formulário: já do veículo (bucket público ou privado) ou vinda da consignação (privado, copiada ao salvar). */
 export type FotoEditavel = { path: string; url: string; origem: "veiculo" | "consignacao" };
 
 export type DadosFormVeiculo = {
@@ -50,6 +51,17 @@ function corDaLista(cor: string) {
   return CORES.find((c) => n(c) === n(cor)) ?? (cor.trim() ? "Outra" : "");
 }
 
+/** Fotos do formulário na ordem: URL pública para carro no catálogo; assinada (bucket privado) para os demais. */
+async function fotosDoFormulario(
+  supabase: Awaited<ReturnType<typeof exigirAdmin>>["supabase"],
+  v: { status: string; publicado: boolean; veiculo_fotos: { path: string; ordem: number }[] },
+): Promise<FotoEditavel[]> {
+  const ordenadas = [...v.veiculo_fotos].sort((a, b) => a.ordem - b.ordem);
+  const publica = fotosPublicas(v);
+  const urls = await urlsFotosVeiculo(supabase, ordenadas.map((f) => ({ path: f.path, publica })));
+  return ordenadas.map((f, i) => ({ path: f.path, url: urls[i] ?? "", origem: "veiculo" as const }));
+}
+
 /** Veículo para editar (15/28), ou null se não existir. */
 export async function carregarVeiculo(id: string): Promise<DadosFormVeiculo | null> {
   const { supabase } = await exigirAdmin();
@@ -85,7 +97,7 @@ export async function carregarVeiculo(id: string): Promise<DadosFormVeiculo | nu
       selosExtras: v.veiculo_selos.map((s) => s.selo_id),
       opcionais: v.veiculo_opcionais.map((o) => o.opcional_id),
     },
-    fotos: [...v.veiculo_fotos].sort((a, b) => a.ordem - b.ordem).map((f) => ({ path: f.path, url: urlFotoVeiculo(f.path), origem: "veiculo" as const })),
+    fotos: await fotosDoFormulario(supabase, v),
   };
 }
 

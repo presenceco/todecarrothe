@@ -11,6 +11,7 @@ import { excluirVeiculo, mudarStatusVeiculo, type Resultado } from "@/lib/admin/
 import type { LinhaEstoque } from "@/lib/admin/estoque";
 import { cn } from "@/lib/cn";
 import { anoFabModelo, km, moeda } from "@/lib/formato";
+import { urlAssinada } from "@/lib/fotos-veiculo";
 import type { NomeIcone } from "@/lib/icones";
 import { STATUS_VEICULO, type StatusVeiculo } from "@/lib/status";
 
@@ -128,7 +129,7 @@ export function AcoesVeiculoMobile({ v }: { v: LinhaEstoque }) {
           <SheetHandle />
           <div className="flex items-center gap-12 border-b border-gray-120 px-20 py-16">
             <div className="relative h-66 w-88 flex-none overflow-hidden rounded-10 bg-hatch-sm">
-              {v.capa && <Image src={v.capa} alt="" fill sizes="88px" className="object-cover" />}
+              {v.capa && <Image src={v.capa} alt="" fill sizes="88px" unoptimized={urlAssinada(v.capa)} className="object-cover" />}
             </div>
             <div className="min-w-0 flex-1">
               <h2 id={idTitulo} className="truncate text-17 font-bold">

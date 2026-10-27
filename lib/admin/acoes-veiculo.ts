@@ -4,9 +4,11 @@ import { randomUUID } from "node:crypto";
 import { refresh, updateTag } from "next/cache";
 import { TAG_VEICULOS } from "@/lib/catalogo/consultas";
 import { errosPorCampo, type ErrosCampos } from "@/lib/formularios/esquemas";
+import { BUCKET_OCULTO, BUCKET_PUBLICO, bucketDoVeiculo } from "@/lib/fotos-veiculo";
 import { resumoErro } from "@/lib/log";
 import { slugLivre, slugVeiculo } from "@/lib/slug";
 import { esquemaVeiculo, MAX_FOTOS_VEICULO, type CamposVeiculo } from "./esquema-veiculo";
+import { arquivosDoVeiculo, desfazerMovimento, moverFotos } from "./fotos-veiculo";
 import { exigirAdmin } from "./sessao";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -68,11 +70,27 @@ export async function salvarVeiculo(entrada: {
     selos: d.selos,
     publicado: publicar,
   };
+
+  // Fotos no bucket do estado final: o público só para carro disponível e publicado; o resto no privado
+  // (os envios novos chegam no privado). Move antes de gravar: se algo falhar, nada muda.
+  const bucket = bucketDoVeiculo({ status: d.status, publicado: publicar });
+  const outro = bucket === BUCKET_PUBLICO ? BUCKET_OCULTO : BUCKET_PUBLICO;
+  let movidas: string[];
+  try {
+    const noOutro = new Set(await arquivosDoVeiculo(supabase, outro, id));
+    movidas = entrada.fotos.filter((f) => f.origem === "veiculo" && noOutro.has(f.path)).map((f) => f.path);
+  } catch (e) {
+    console.error("salvarVeiculo listar fotos", resumoErro(e));
+    return { ok: false, erros: {}, geral: FALHA };
+  }
+  if (!(await moverFotos(supabase, movidas, outro, bucket))) return { ok: false, erros: {}, geral: FALHA };
+
   const gravacao = novo
     ? await supabase.from("veiculos").insert({ id, ...linha, consignacao_id: entrada.consignacaoId })
     : await supabase.from("veiculos").update(linha).eq("id", id);
   if (gravacao.error) {
     console.error("salvarVeiculo", resumoErro(gravacao.error));
+    await desfazerMovimento(supabase, movidas, outro, bucket);
     return { ok: false, erros: {}, geral: FALHA };
   }
 
@@ -85,7 +103,7 @@ export async function salvarVeiculo(entrada: {
     }
     if (!entrada.consignacaoId || !foto.path.startsWith(`${entrada.consignacaoId}/`)) continue;
     const destino = `${id}/${randomUUID()}.${foto.path.toLowerCase().endsWith(".png") ? "png" : "jpg"}`;
-    const { error } = await supabase.storage.from("consignacoes").copy(foto.path, destino, { destinationBucket: "veiculos" });
+    const { error } = await supabase.storage.from("consignacoes").copy(foto.path, destino, { destinationBucket: bucket });
     if (error) console.error("salvarVeiculo copiar foto", resumoErro(error));
     else finais.push(destino);
   }
@@ -99,10 +117,12 @@ export async function salvarVeiculo(entrada: {
     return { ok: false, erros: {}, geral: FALHA };
   }
 
-  // Arquivos da pasta que não estão mais na lista (removidos ou envios abandonados).
-  const { data: pasta } = await supabase.storage.from("veiculos").list(id, { limit: 100 });
-  const sobras = (pasta ?? []).map((a) => `${id}/${a.name}`).filter((p) => !finais.includes(p));
-  if (sobras.length) await supabase.storage.from("veiculos").remove(sobras);
+  // Arquivos da pasta que não estão mais na lista (removidos ou envios abandonados), nos dois buckets.
+  for (const b of [bucket, outro]) {
+    const { data: pasta } = await supabase.storage.from(b).list(id, { limit: 100 });
+    const sobras = (pasta ?? []).map((a) => `${id}/${a.name}`).filter((p) => b !== bucket || !finais.includes(p));
+    if (sobras.length) await supabase.storage.from(b).remove(sobras);
+  }
 
   await supabase.from("veiculo_opcionais").delete().eq("veiculo_id", id);
   if (d.opcionais.length) {

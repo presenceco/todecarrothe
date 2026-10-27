@@ -20,11 +20,11 @@ import { Icon } from "@/components/ui/icon";
 import { MAX_FOTOS_VEICULO } from "@/lib/admin/esquema-veiculo";
 import { cn } from "@/lib/cn";
 import { FOTOS_CLIENTE } from "@/lib/formularios/esquemas";
-
-/** Fotos do estoque: até 10 MB cada, o limite do bucket veiculos (as dos clientes vão até 15 MB). */
-const TAMANHO_MAXIMO = 10 * 1024 * 1024;
-import { urlFotoVeiculo } from "@/lib/supabase/config";
+import { BUCKET_OCULTO, CACHE_FOTOS_VEICULO } from "@/lib/fotos-veiculo";
 import { clienteNavegador } from "@/lib/supabase/navegador";
+
+/** Fotos do estoque: até 10 MB cada, o limite dos buckets do estoque (as dos clientes vão até 15 MB). */
+const TAMANHO_MAXIMO = 10 * 1024 * 1024;
 
 export type FotoForm = {
   chave: string;
@@ -125,8 +125,8 @@ function ItemOrdenavel(props: { foto: FotoForm; indice: number; extra?: number; 
 }
 
 /**
- * Fotos do veículo (15/28): até 20 JPG/PNG de até 10 MB, enviadas direto para o bucket na pasta do
- * veículo (sessão do admin). Arraste para ordenar (toque segurando, mouse ou teclado); a 1ª é a capa.
+ * Fotos do veículo (15/28): até 20 JPG/PNG de até 10 MB, enviadas direto para o bucket privado na pasta
+ * do veículo (sessão do admin); ao salvar, vão para o público se o carro estiver no catálogo. Arraste para ordenar (toque segurando, mouse ou teclado); a 1ª é a capa.
  * No desktop, também dá para soltar arquivos na área tracejada.
  */
 export function FotosVeiculo({
@@ -171,16 +171,19 @@ export function FotosVeiculo({
     const novas = aceitas.map((arquivo) => ({ chave: crypto.randomUUID(), arquivo, url: URL.createObjectURL(arquivo) }));
     onFotos((atuais) => [...atuais, ...novas.map((n) => ({ chave: n.chave, path: "", url: n.url, origem: "veiculo" as const, enviando: true }))]);
 
-    const storage = clienteNavegador().storage.from("veiculos");
+    const storage = clienteNavegador().storage.from(BUCKET_OCULTO);
     for (const n of novas) {
       const arquivo = await prepararFoto(n.arquivo);
       const path = `${veiculoId}/${crypto.randomUUID()}.${arquivo.type === "image/png" ? "png" : "jpg"}`;
-      const { error } = await storage.upload(path, arquivo, { contentType: arquivo.type, cacheControl: "31536000", upsert: false });
-      if (error) {
+      // Cache curto: ao publicar, a foto vai com ele para o bucket público.
+      const { error } = await storage.upload(path, arquivo, { contentType: arquivo.type, cacheControl: CACHE_FOTOS_VEICULO, upsert: false });
+      // Prévia pela URL assinada (o bucket é privado).
+      const assinada = error ? null : (await storage.createSignedUrl(path, 3600)).data?.signedUrl;
+      if (error || !assinada) {
         setAvisos((a) => [...a, `${n.arquivo.name}: não foi possível enviar. Tente de novo.`]);
         onFotos((atuais) => atuais.filter((f) => f.chave !== n.chave));
       } else {
-        onFotos((atuais) => atuais.map((f) => (f.chave === n.chave ? { ...f, path, url: urlFotoVeiculo(path), enviando: false } : f)));
+        onFotos((atuais) => atuais.map((f) => (f.chave === n.chave ? { ...f, path, url: assinada, enviando: false } : f)));
       }
       URL.revokeObjectURL(n.url);
     }

@@ -1,7 +1,8 @@
 import "server-only";
-import { urlFotoVeiculo } from "@/lib/supabase/config";
+import { fotosPublicas } from "@/lib/fotos-veiculo";
 import type { StatusVeiculo } from "@/lib/status";
 import { POR_PAGINA, termoBusca, type FiltrosLista } from "./filtros";
+import { urlsFotosVeiculo } from "./fotos-veiculo";
 import { exigirAdmin } from "./sessao";
 
 export const STATUS_ESTOQUE = ["disponivel", "reservado", "vendido"] as const satisfies readonly StatusVeiculo[];
@@ -80,8 +81,12 @@ export async function listarEstoque(f: FiltrosLista<StatusVeiculo>) {
     preco: Number(v.preco),
     status: v.status as StatusVeiculo,
     publicado: v.publicado,
-    capa: v.veiculo_fotos[0] ? urlFotoVeiculo(v.veiculo_fotos[0].path) : null,
+    capa: null,
   }));
+  // Capas: URL pública para carro no catálogo; assinada (bucket privado) para rascunho, reservado e vendido.
+  const comCapa = (res.data ?? []).flatMap((v, i) => (v.veiculo_fotos[0] ? [{ i, path: v.veiculo_fotos[0].path, publica: fotosPublicas(v) }] : []));
+  const capas = await urlsFotosVeiculo(supabase, comCapa);
+  comCapa.forEach((c, k) => (linhas[c.i].capa = capas[k]));
 
   const contagens = { todos: todos.count ?? 0, disponivel: disponivel.count ?? 0, reservado: reservado.count ?? 0, vendido: vendido.count ?? 0 };
   return {

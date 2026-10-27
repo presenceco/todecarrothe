@@ -3,6 +3,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/ui/badges";
 import type { LinhaEstoque } from "@/lib/admin/estoque";
 import { anoFabModelo, km, moeda } from "@/lib/formato";
+import { urlAssinada } from "@/lib/fotos-veiculo";
 import { STATUS_VEICULO } from "@/lib/status";
 import { AcoesVeiculoDesktop, AcoesVeiculoMobile } from "./acoes-veiculo";
 
@@ -17,7 +18,7 @@ export function CartaoEstoque({ v }: { v: LinhaEstoque }) {
   return (
     <article className="relative flex gap-12 rounded-16 border border-gray-150 bg-white p-12">
       <div className="relative h-75 w-100 flex-none overflow-hidden rounded-10 bg-hatch-sm">
-        {v.capa && <Image src={v.capa} alt="" fill sizes="100px" className="object-cover" />}
+        {v.capa && <Image src={v.capa} alt="" fill sizes="100px" unoptimized={urlAssinada(v.capa)} className="object-cover" />}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <h2 className="truncate pr-36 text-16 font-bold">
@@ -75,7 +76,7 @@ export function TabelaEstoque({ linhas, rodape }: { linhas: readonly LinhaEstoqu
               className={`${COLUNAS} relative h-73 border-b border-gray-120 text-15 tabular-nums focus-within:z-10 has-[[aria-expanded=true]]:z-10`}
             >
               <div role="cell" className="relative h-54 w-72 overflow-hidden rounded-8 bg-hatch-sm">
-                {v.capa && <Image src={v.capa} alt="" fill sizes="72px" className="object-cover" />}
+                {v.capa && <Image src={v.capa} alt="" fill sizes="72px" unoptimized={urlAssinada(v.capa)} className="object-cover" />}
               </div>
               {/* Nome e versão sem algarismos tabulares (na referência o atalho "font" desliga o tabular-nums da linha). */}
               <div role="cell" className="min-w-0 normal-nums">

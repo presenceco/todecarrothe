@@ -8,6 +8,7 @@ import { SelectField } from "@/components/ui/select-field";
 import { TEXTO_CONSENTIMENTO } from "@/lib/consentimento";
 import { confirmarFotosConsignacao, enviarConsignacao } from "@/lib/formularios/acoes";
 import { errosPorCampo, esquemaConsignacao, FORMAS_VENDA, type CamposConsignacao } from "@/lib/formularios/esquemas";
+import { CACHE_FOTOS_VEICULO } from "@/lib/fotos-veiculo";
 import { MARCAS } from "@/lib/marcas";
 import { mascaraAnoFabModelo, mascaraKm, mascaraMoeda, mascaraWhatsapp } from "@/lib/mascaras";
 import { clienteNavegador } from "@/lib/supabase/navegador";
@@ -91,7 +92,8 @@ export function FormConsignacao() {
         for (const [i, envio] of resposta.uploads.entries()) {
           setProgresso({ atual: i + 1, total: resposta.uploads.length });
           const arquivo = arquivos[i];
-          const { error } = await storage.uploadToSignedUrl(envio.path, envio.token, arquivo, { contentType: arquivo.type });
+          // Cache curto: a foto pode virar foto do estoque ("Cadastrar no estoque") e ir para o bucket público.
+          const { error } = await storage.uploadToSignedUrl(envio.path, envio.token, arquivo, { contentType: arquivo.type, cacheControl: CACHE_FOTOS_VEICULO });
           if (!error) enviadas.push(envio.path);
         }
         if (enviadas.length) await confirmarFotosConsignacao({ id: resposta.id, assinatura: resposta.assinatura, paths: enviadas });
