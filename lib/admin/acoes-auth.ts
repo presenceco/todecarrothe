@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { siteUrl } from "@/lib/env";
+import { dentroDoLimite, type Limite } from "@/lib/formularios/protecao";
 import { resumoErro } from "@/lib/log";
 import { clienteServidor } from "@/lib/supabase/servidor";
 import { COOKIE_SESSAO_CURTA } from "./cookies";
@@ -14,6 +15,9 @@ export type EstadoRedefinir = { erro?: string };
 
 const ERRO_CREDENCIAIS = "E-mail ou senha incorretos.";
 const ERRO_LIMITE = "Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.";
+
+/** Tentativas de login por IP (o hash do IP é o mesmo dos formulários públicos). */
+const LIMITE_LOGIN: Limite = { quantidade: 5, janela: "15 minutes" };
 
 /** Só volta para páginas do próprio painel (evita redirecionamento aberto). */
 function destinoSeguro(volta: FormDataEntryValue | null) {
@@ -28,6 +32,14 @@ export async function entrar(_anterior: EstadoEntrar, dados: FormData): Promise<
   const email = digitado || emailDoPainel() || "";
   const senha = String(dados.get("senha") ?? "");
   if (!email || !senha) return { erro: emailDoPainel() ? "Informe a senha." : "Informe o e-mail e a senha.", email: digitado };
+
+  // Acima de 5 tentativas em 15 minutos no mesmo IP, nem chega ao Supabase.
+  try {
+    if (!(await dentroDoLimite("login", LIMITE_LOGIN))) return { erro: ERRO_LIMITE, email: digitado };
+  } catch (e) {
+    console.error("entrar limite", resumoErro(e));
+    return { erro: "Não foi possível entrar agora. Tente de novo em alguns minutos.", email: digitado };
+  }
 
   const loja = await cookies();
   if (dados.get("manter") === "on") loja.delete(COOKIE_SESSAO_CURTA);
