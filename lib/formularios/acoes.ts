@@ -183,7 +183,7 @@ export type RespostaConsignacao = RespostaEnvio | RespostaComFotos;
 
 /**
  * Grava a consignação e devolve links assinados para o navegador enviar as fotos direto ao Storage
- * (bucket privado; fotos de até 10 MB não passam pelo servidor). Depois do envio, o navegador chama
+ * (bucket privado; fotos de até 15 MB não passam pelo servidor). Depois do envio, o navegador chama
  * `confirmarFotosConsignacao`.
  */
 export async function enviarConsignacao(entrada: {

@@ -14,7 +14,7 @@ const LADO_MAXIMO = 2400;
 
 /**
  * Fotos enviadas pelo cliente ("Venda seu carro", 33/37, e carro de entrada do pedido de busca): até 8 JPG
- * ou PNG de até 10 MB, com prévia e botão para remover.
+ * ou PNG de até 15 MB, com prévia e botão para remover.
  * Os arquivos ficam no navegador até o envio; o formulário sobe cada um para o Storage com link assinado.
  */
 export function FotosCliente({
@@ -48,7 +48,7 @@ export function FotosCliente({
     const motivos: string[] = [];
     for (const arquivo of Array.from(lista)) {
       if (!(FOTOS_CLIENTE.tipos as readonly string[]).includes(arquivo.type)) motivos.push(`${arquivo.name}: use JPG ou PNG.`);
-      else if (arquivo.size > FOTOS_CLIENTE.tamanhoMaximo) motivos.push(`${arquivo.name}: passa de 10 MB.`);
+      else if (arquivo.size > FOTOS_CLIENTE.tamanhoMaximo) motivos.push(`${arquivo.name}: passa de 15 MB.`);
       else if (novas.length >= restantes) motivos.push(`${arquivo.name}: o limite é de ${FOTOS_CLIENTE.maximo} fotos.`);
       else novas.push({ id: crypto.randomUUID(), arquivo, url: URL.createObjectURL(arquivo) });
     }
@@ -123,7 +123,7 @@ export function FotosCliente({
         </ul>
       )}
       <p className="text-14 text-gray-500">
-        {fotos.length} de {FOTOS_CLIENTE.maximo} fotos · JPG ou PNG, até 10 MB cada
+        {fotos.length} de {FOTOS_CLIENTE.maximo} fotos · JPG ou PNG, até 15 MB cada
       </p>
       {(erro || recusadas.length > 0) && (
         <div id="campo-fotos-erro" aria-live="polite" className="-mt-4 text-14 leading-140 text-danger">

@@ -152,14 +152,14 @@ export const FAIXAS_PRECO = [
 /** Quantidade de parcelas do pedido de busca financiado. */
 export const PRAZOS_PEDIDO = [12, 24, 36, 48, 60] as const;
 
-/** Fotos enviadas pelo cliente (consignação e carro de entrada do pedido): até 8 JPG/PNG de até 10 MB. */
-export const FOTOS_CLIENTE = { maximo: 8, tamanhoMaximo: 10 * 1024 * 1024, tipos: ["image/jpeg", "image/png"] } as const;
+/** Fotos enviadas pelo cliente (consignação e carro de entrada do pedido): até 8 JPG/PNG de até 15 MB cada. */
+export const FOTOS_CLIENTE = { maximo: 8, tamanhoMaximo: 15 * 1024 * 1024, tipos: ["image/jpeg", "image/png"] } as const;
 
 const fotosCliente = z
   .array(z.object({ tipo: z.string(), tamanho: z.number() }))
   .max(FOTOS_CLIENTE.maximo, { error: `Envie no máximo ${FOTOS_CLIENTE.maximo} fotos.` })
   .refine((fs) => fs.every((f) => (FOTOS_CLIENTE.tipos as readonly string[]).includes(f.tipo)), { error: "Use fotos JPG ou PNG." })
-  .refine((fs) => fs.every((f) => f.tamanho <= FOTOS_CLIENTE.tamanhoMaximo), { error: "Cada foto pode ter até 10 MB." });
+  .refine((fs) => fs.every((f) => f.tamanho <= FOTOS_CLIENTE.tamanhoMaximo), { error: "Cada foto pode ter até 15 MB." });
 
 export const esquemaPedido = z
   .object({

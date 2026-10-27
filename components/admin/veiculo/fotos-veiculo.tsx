@@ -20,6 +20,9 @@ import { Icon } from "@/components/ui/icon";
 import { MAX_FOTOS_VEICULO } from "@/lib/admin/esquema-veiculo";
 import { cn } from "@/lib/cn";
 import { FOTOS_CLIENTE } from "@/lib/formularios/esquemas";
+
+/** Fotos do estoque: até 10 MB cada, o limite do bucket veiculos (as dos clientes vão até 15 MB). */
+const TAMANHO_MAXIMO = 10 * 1024 * 1024;
 import { urlFotoVeiculo } from "@/lib/supabase/config";
 import { clienteNavegador } from "@/lib/supabase/navegador";
 
@@ -157,7 +160,7 @@ export function FotosVeiculo({
     const aceitas: File[] = [];
     for (const arquivo of Array.from(lista)) {
       if (!TIPOS.includes(arquivo.type)) motivos.push(`${arquivo.name}: use JPG ou PNG.`);
-      else if (arquivo.size > FOTOS_CLIENTE.tamanhoMaximo) motivos.push(`${arquivo.name}: passa de 10 MB.`);
+      else if (arquivo.size > TAMANHO_MAXIMO) motivos.push(`${arquivo.name}: passa de 10 MB.`);
       else if (aceitas.length >= restantes) motivos.push(`${arquivo.name}: o limite é de ${MAX_FOTOS_VEICULO} fotos.`);
       else aceitas.push(arquivo);
     }
