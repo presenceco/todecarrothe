@@ -4,6 +4,7 @@ import { Confirmacao, type ResumoConfirmacao } from "@/components/formularios/co
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { FORMAS_VENDA } from "@/lib/formularios/esquemas";
+import { textoDaUrl } from "@/lib/formularios/texto-url";
 
 export const metadata: Metadata = { title: "Carro enviado", robots: { index: false, follow: false } };
 
@@ -13,7 +14,7 @@ const TEXTO = "Em breve a Tô de Carro te chama no WhatsApp para combinar a aval
 /** O resumo vem da URL: marca e modelo, ano e forma de venda. Nada de dado pessoal na URL. */
 async function Conteudo({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
-  const carro = typeof sp.carro === "string" ? sp.carro.trim().slice(0, 80) : "";
+  const carro = textoDaUrl(sp.carro);
   const ano = typeof sp.ano === "string" && /^\d{4}\/\d{4}$/.test(sp.ano) ? sp.ano : null;
   const forma = FORMAS_VENDA.find((f) => f.value === sp.forma)?.label;
 
