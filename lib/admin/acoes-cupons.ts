@@ -93,11 +93,10 @@ export async function alterarAtivoCupom(id: string, ativo: boolean): Promise<Res
   return { ok: true };
 }
 
-/** Exclui um cupom que nunca foi usado (o banco também recusa os usados: on delete restrict). */
+/** Exclui o cupom de vez. Se foi usado, os contatos continuam, sem a indicação, e os cliques saem junto (regras do banco). */
 export async function excluirCupom(id: string): Promise<Resultado> {
   if (!UUID.test(id)) return { ok: false, erro: "Pedido inválido." };
   const { supabase } = await exigirAdmin();
-  if ((await usos(id)) > 0) return { ok: false, erro: "Cupons usados não podem ser excluídos para manter o histórico." };
   const { error } = await supabase.from("cupons").delete().eq("id", id);
   if (error) {
     console.error("excluirCupom", resumoErro(error));

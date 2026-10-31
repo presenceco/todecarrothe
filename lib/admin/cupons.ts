@@ -48,7 +48,7 @@ function paraCupom(l: LinhaResumo): Cupom {
   };
 }
 
-/** Usado = tem contato ou clique ligado a ele. Cupom usado não pode ser excluído nem trocar de código. */
+/** Usado = tem contato ou clique ligado a ele. Cupom usado não pode trocar de código. */
 export const cupomUsado = (c: Cupom) => c.totais.simulacoes + c.totais.pedidos + c.totais.consignacoes + c.totais.cliques > 0;
 
 /** Link de indicação pronto para enviar. */

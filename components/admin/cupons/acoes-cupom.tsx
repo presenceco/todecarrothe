@@ -36,8 +36,8 @@ export function BotaoCopiarLink({ link }: { link: string }) {
 const BOTAO_PERIGO = "pressable flex h-48 items-center gap-8 self-start rounded-12 px-4 text-15 font-semibold text-danger hover:underline";
 
 /**
- * Fim do detalhe do cupom. Nunca usado: "Excluir". Usado: "Desativar", com a explicação do histórico, e
- * "Apagar dados do indicador", para atender o pedido de exclusão dele.
+ * Fim do detalhe do cupom. "Desativar" para de valer e guarda o histórico; "Reativar" volta a valer. "Excluir"
+ * apaga de vez. Usado: também "Apagar dados do indicador", para atender o pedido de exclusão dele.
  */
 export function AcoesCupom({ id, codigo, usado, ativo, dadosApagados }: { id: string; codigo: string; usado: boolean; ativo: boolean; dadosApagados: boolean }) {
   const router = useRouter();
@@ -45,55 +45,51 @@ export function AcoesCupom({ id, codigo, usado, ativo, dadosApagados }: { id: st
   const [erro, setErro] = useState<string>();
   const [pendente, iniciar] = useTransition();
 
-  if (!usado) {
-    return (
-      <>
-        <button type="button" onClick={() => setConfirmar("excluir")} className={BOTAO_PERIGO}>
-          <Icon name="delete" size={20} />
-          Excluir cupom
-        </button>
-        <ConfirmarPerigo
-          aberto={confirmar === "excluir"}
-          onFechar={() => setConfirmar(null)}
-          titulo={`Excluir o cupom ${codigo}?`}
-          texto="Ele nunca foi usado. O link de indicação deixa de funcionar e não dá para desfazer."
-          acao={() => excluirCupom(id)}
-          depois={() => router.replace("/admin/cupons")}
-        />
-      </>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-14 leading-140 text-gray-600">Cupons usados não podem ser excluídos para manter o histórico.</p>
-      {ativo && (
+      {(ativo || !dadosApagados) && (
         <button
           type="button"
           disabled={pendente}
           onClick={() =>
             iniciar(async () => {
               setErro(undefined);
-              const r = await alterarAtivoCupom(id, false);
+              const r = await alterarAtivoCupom(id, !ativo);
               if (!r.ok) setErro(r.erro);
             })
           }
           className="flex h-48 items-center self-start px-4 text-15 font-semibold text-brand hover:underline disabled:opacity-50"
         >
-          Desativar cupom
+          {ativo ? "Desativar cupom" : "Reativar cupom"}
         </button>
       )}
-      {!dadosApagados && (
+      {usado && !dadosApagados && (
         <button type="button" onClick={() => setConfirmar("apagar")} className={BOTAO_PERIGO}>
           <Icon name="delete" size={20} />
           Apagar dados do indicador
         </button>
       )}
+      <button type="button" onClick={() => setConfirmar("excluir")} className={BOTAO_PERIGO}>
+        <Icon name="delete" size={20} />
+        Excluir cupom
+      </button>
       {erro && (
         <p role="alert" className="text-14 text-danger">
           {erro}
         </p>
       )}
+      <ConfirmarPerigo
+        aberto={confirmar === "excluir"}
+        onFechar={() => setConfirmar(null)}
+        titulo={`Excluir o cupom ${codigo}?`}
+        texto={
+          usado
+            ? "O link de indicação deixa de funcionar e os cliques são apagados. Os contatos continuam no painel, mas sem a indicação: não dá mais para saber quem indicou. Não dá para desfazer. Para guardar o histórico, desative o cupom."
+            : "Ele nunca foi usado. O link de indicação deixa de funcionar e não dá para desfazer."
+        }
+        acao={() => excluirCupom(id)}
+        depois={() => router.replace("/admin/cupons")}
+      />
       <ConfirmarPerigo
         aberto={confirmar === "apagar"}
         onFechar={() => setConfirmar(null)}
