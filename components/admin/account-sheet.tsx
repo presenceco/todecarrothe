@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { Sheet, SheetHandle } from "@/components/ui/sheet";
@@ -40,6 +41,14 @@ export function AccountSheet({ usuario }: { usuario: UsuarioAdmin }) {
           </div>
         </div>
         <div className="p-8">
+          <Link
+            href="/admin/cupons"
+            onClick={() => setAberto(false)}
+            className="pressable flex h-56 items-center gap-16 rounded-12 px-14 text-16 font-semibold hover:bg-gray-100"
+          >
+            <Icon name="confirmation_number" />
+            Cupons de indicação
+          </Link>
           <a
             href="/"
             target="_blank"

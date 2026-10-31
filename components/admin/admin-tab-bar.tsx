@@ -24,7 +24,7 @@ export function AdminTabBar({ contadores, className }: { contadores: Contadores;
         className,
       )}
     >
-      {NAV_ADMIN.map((item) => {
+      {NAV_ADMIN.filter((item) => !item.soMenuLateral).map((item) => {
         const ativo = rotaAtiva(pathname, [item.href]);
         const n = item.contador ? contadores[item.contador] : 0;
         return (

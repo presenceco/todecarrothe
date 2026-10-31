@@ -42,6 +42,8 @@ type ItemAdmin = {
   contador?: ChaveContador;
   /** Como ler o contador: "2 pedidos novos", "1 simulação nova". */
   novos?: readonly [um: string, varios: string];
+  /** Fora da barra inferior do mobile, que só tem espaço para 4 abas: lá fica no painel da conta. */
+  soMenuLateral?: boolean;
 };
 
 /** Navegação do admin: barra inferior (mobile) e menu lateral (desktop), com Consignações. */
@@ -56,6 +58,7 @@ export const NAV_ADMIN: readonly ItemAdmin[] = [
     contador: "consignacoes",
     novos: ["consignação nova", "consignações novas"],
   },
+  { href: "/admin/cupons", rotulo: "Cupons", icone: "confirmation_number", soMenuLateral: true },
 ];
 
 export type Contadores = Record<ChaveContador, number>;
