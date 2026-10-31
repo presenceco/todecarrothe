@@ -5,6 +5,7 @@ import type { NomeIcone } from "@/lib/icones";
 import { STATUS_CONSIGNACAO, type StatusConsignacao } from "@/lib/status";
 import { ROTULO_CAMBIO } from "@/lib/tipos";
 import { POR_PAGINA, termoBusca, type FiltrosLista } from "./filtros";
+import { CAMPOS_INDICACAO, paraIndicacao, textoIndicacao, type Indicacao, type LinhaIndicacao } from "./indicacao";
 import { exigirAdmin } from "./sessao";
 
 export const STATUS_CONSIGNACOES = Object.keys(STATUS_CONSIGNACAO) as StatusConsignacao[];
@@ -39,10 +40,11 @@ export type Consignacao = {
   totalFotos: number;
   /** URL assinada (1 hora) da primeira foto: o bucket é privado. */
   capa: string | null;
+  indicacao: Indicacao | null;
 };
 
 const CAMPOS =
-  "id, forma_venda, marca, modelo, versao, ano_fabricacao, ano_modelo, km, cambio, cor, quitado, valor_pretendido, detalhes, nome, whatsapp, anotacoes, status, created_at, consignacao_fotos (path, ordem)";
+  `id, forma_venda, marca, modelo, versao, ano_fabricacao, ano_modelo, km, cambio, cor, quitado, valor_pretendido, detalhes, nome, whatsapp, anotacoes, status, created_at, consignacao_fotos (path, ordem), ${CAMPOS_INDICACAO}`;
 
 type Linha = {
   id: string;
@@ -64,6 +66,7 @@ type Linha = {
   status: string;
   created_at: string;
   consignacao_fotos: { path: string; ordem: number }[];
+  cupons: LinhaIndicacao;
 };
 
 const fotosOrdenadas = (l: Linha) => [...l.consignacao_fotos].sort((a, b) => a.ordem - b.ordem).map((f) => f.path);
@@ -89,6 +92,7 @@ function paraConsignacao(l: Linha, capa: string | null): Consignacao {
     criadoEm: l.created_at,
     totalFotos: l.consignacao_fotos.length,
     capa,
+    indicacao: paraIndicacao(l.cupons),
   };
 }
 
@@ -119,16 +123,19 @@ export async function listarConsignacoes(f: FiltrosLista<StatusConsignacao>) {
   const inicio = (f.pagina - 1) * POR_PAGINA;
   let lista = supabase.from("consignacoes").select(CAMPOS, { count: "exact" }).order("created_at", { ascending: false }).range(inicio, inicio + POR_PAGINA - 1);
   if (f.status) lista = lista.eq("status", f.status);
+  if (f.indicacao) lista = lista.not("cupom_id", "is", null);
   lista = aplicarBusca(lista, f.q);
   const contar = (status?: StatusConsignacao) => {
     let c = supabase.from("consignacoes").select("id", { count: "exact", head: true });
     if (status) c = c.eq("status", status);
+    if (f.indicacao) c = c.not("cupom_id", "is", null);
     return aplicarBusca(c, f.q);
   };
-  const [res, todos, ...porStatus] = await Promise.all([lista, contar(), ...STATUS_CONSIGNACOES.map((s) => contar(s))]);
+  const comIndicacao = aplicarBusca(supabase.from("consignacoes").select("id", { count: "exact", head: true }).not("cupom_id", "is", null), f.q);
+  const [res, indicados, todos, ...porStatus] = await Promise.all([lista, comIndicacao, contar(), ...STATUS_CONSIGNACOES.map((s) => contar(s))]);
   // Página além da última (link antigo): lista vazia em vez de erro; a paginação mostra o intervalo certo.
   if (res.error && res.error.code !== "PGRST103") throw new Error(`Falha ao ler as consignações: ${res.error.message}`);
-  const linhas = (res.data ?? []) as Linha[];
+  const linhas = (res.data ?? []) as unknown as Linha[];
   const capas = await assinar(linhas.map((l) => fotosOrdenadas(l)[0]).filter(Boolean));
   let i = 0;
   const contagens = Object.fromEntries(STATUS_CONSIGNACOES.map((s, k) => [s, porStatus[k].count ?? 0])) as Record<StatusConsignacao, number>;
@@ -136,6 +143,7 @@ export async function listarConsignacoes(f: FiltrosLista<StatusConsignacao>) {
     linhas: linhas.map((l) => paraConsignacao(l, fotosOrdenadas(l)[0] ? (capas[i++] ?? null) : null)),
     total: res.count ?? 0,
     contagens: { todos: todos.count ?? 0, ...contagens },
+    comIndicacao: indicados.count ?? 0,
   };
 }
 
@@ -173,6 +181,7 @@ export function textoConsignacao(c: Consignacao) {
     `Quer receber: ${querReceber(c)}`,
     ...(c.detalhes.trim() ? [`Detalhes: ${c.detalhes.trim()}`] : []),
     `Fotos enviadas: ${c.totalFotos}`,
+    ...(c.indicacao ? [textoIndicacao(c.indicacao)] : []),
     "",
     `Nome: ${c.nome}`,
     `WhatsApp: ${telefone(c.whatsapp)}`,

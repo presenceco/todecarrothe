@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BotaoWhatsapp, DetalheMobile, DetalhePainel, SecaoMobile, SecaoPainel, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
+import { LinkIndicacao } from "@/components/admin/cupons/indicacao";
 import { BotaoCopiar, ExcluirRegistro, StatusEscolha } from "@/components/admin/detalhe/interativos";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { BASE_SIMULACOES, FotoSimulacao, ListaSimulacoes, OPCOES_STATUS_SIMULACAO, whatsappSimulacao } from "@/components/admin/simulacoes/lista-simulacoes";
@@ -115,6 +116,11 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
             ...(s.temTroca ? [{ rotulo: "Modelo e ano", valor: [s.trocaModelo, s.trocaAno].filter(Boolean).join(" · ") || "—" }] : []),
           ]}
         />
+        {s.indicacao && (
+          <SecaoPainel titulo="Indicação">
+            <LinkIndicacao indicacao={s.indicacao} />
+          </SecaoPainel>
+        )}
         {s.consentimento && (
           <p className="flex items-center gap-8 text-14 font-medium text-success">
             <Icon name="check_circle" size={20} fill />
@@ -155,6 +161,11 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
               : []),
           ]}
         />
+        {s.indicacao && (
+          <SecaoMobile titulo="Indicação">
+            <LinkIndicacao indicacao={s.indicacao} />
+          </SecaoMobile>
+        )}
         {s.consentimento && (
           <p className="flex items-center gap-10 rounded-14 bg-success-bg p-14 text-14 leading-140 font-semibold text-success">
             <Icon name="check_circle" size={22} fill />

@@ -4,6 +4,7 @@ import { AdminDock } from "@/components/admin/admin-dock";
 import { AdminMobileHeader } from "@/components/admin/admin-mobile-header";
 import type { UsuarioAdmin } from "@/components/admin/admin-sidebar";
 import { BuscaDesktop, BuscaMobile } from "@/components/admin/busca-lista";
+import { ChipIndicacaoDesktop, ChipIndicacaoMobile, SeloCupom } from "@/components/admin/cupons/indicacao";
 import { ListaVazia } from "@/components/admin/estados";
 import { Paginacao } from "@/components/admin/paginacao";
 import { StatusBadge } from "@/components/ui/badges";
@@ -54,8 +55,9 @@ function CartaoSimulacao({ s, href }: { s: Simulacao; href: string }) {
       <div className="flex items-start justify-between gap-8">
         <div className="min-w-0">
           <h2 className="truncate text-17 font-bold">{s.nome}</h2>
-          <p className="text-14 text-gray-500">
-            {diaMes(s.criadoEm)} · {hora(s.criadoEm)}
+          <p className="flex flex-wrap items-center gap-x-8 gap-y-4 text-14 text-gray-500">
+            <span>{diaMes(s.criadoEm)} · {hora(s.criadoEm)}</span>
+            {s.indicacao && <SeloCupom codigo={s.indicacao.codigo} />}
           </p>
         </div>
         <StatusBadge tom={st.tom} size="xl">
@@ -127,7 +129,10 @@ function TabelaSimulacoes({ linhas, filtros, rodape }: { linhas: Simulacao[]; fi
               <Link href={hrefDetalheSimulacao(s.id, filtros)} scroll={false} className="block truncate font-semibold before:absolute before:inset-0">
                 {s.nome}
               </Link>
-              <p className="truncate text-14 text-gray-500">{telefone(s.whatsapp)}</p>
+              <p className="flex min-w-0 items-center gap-6 text-14 text-gray-500">
+              <span className="truncate">{telefone(s.whatsapp)}</span>
+              {s.indicacao && <SeloCupom codigo={s.indicacao.codigo} />}
+            </p>
             </div>
             <div role="cell" className="flex min-w-0 items-center gap-12">
               <FotoSimulacao s={s} className="h-48 w-64 rounded-8" sizes="64px" />
@@ -163,18 +168,18 @@ export function ListaSimulacoes({
   contadores,
   soDesktop,
 }: {
-  dados: { linhas: Simulacao[]; total: number; contagens: Record<StatusSimulacao | "todos", number> };
+  dados: { comIndicacao: number; linhas: Simulacao[]; total: number; contagens: Record<StatusSimulacao | "todos", number> };
   filtros: FiltrosLista<StatusSimulacao>;
   usuario: UsuarioAdmin;
   contadores: Contadores;
   soDesktop?: boolean;
 }) {
-  const { linhas, total, contagens } = dados;
+  const { linhas, total, contagens, comIndicacao } = dados;
   const abas = [
     { href: hrefLista(BASE_SIMULACOES, filtros, { status: null }), rotulo: "Todas", count: contagens.todos, selected: !filtros.status },
     ...STATUS_SIMULACOES.map((s) => ({ href: hrefLista(BASE_SIMULACOES, filtros, { status: s }), rotulo: STATUS_SIMULACAO[s].rotulo, count: contagens[s], selected: filtros.status === s })),
   ];
-  const filtrado = !!(filtros.q || filtros.status);
+  const filtrado = !!(filtros.q || filtros.status || filtros.indicacao);
   const vazio = (
     <ListaVazia
       icone="request_quote"
@@ -202,6 +207,7 @@ export function ListaSimulacoes({
                 {a.rotulo}
               </DarkChipLink>
             ))}
+            <ChipIndicacaoMobile base={BASE_SIMULACOES} filtros={filtros} total={comIndicacao} />
           </AdminMobileHeader>
           <div className="flex flex-1 flex-col gap-12 px-16 pt-16 pb-8 lg:hidden">
             {linhas.length ? linhas.map((s) => <CartaoSimulacao key={s.id} s={s} href={hrefDetalheSimulacao(s.id, filtros)} />) : vazio}
@@ -216,9 +222,10 @@ export function ListaSimulacoes({
           <h1 className="text-28 font-bold">Simulações</h1>
           <p className="mt-4 text-15 text-gray-600">Pedidos de financiamento enviados pelo catálogo</p>
         </div>
-        <div className="flex items-center gap-12">
+        <div className="flex flex-wrap items-center gap-12">
           <BuscaDesktop inicial={filtros.q} status={filtros.status} placeholder={BUSCA} largura="w-320" />
           <SegmentedTabs items={abas} label="Status" />
+          <ChipIndicacaoDesktop base={BASE_SIMULACOES} filtros={filtros} total={comIndicacao} />
         </div>
         {linhas.length ? <TabelaSimulacoes linhas={linhas} filtros={filtros} rodape={paginacao} /> : vazio}
       </div>

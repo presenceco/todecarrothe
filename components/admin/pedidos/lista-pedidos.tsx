@@ -3,6 +3,7 @@ import { AdminDock } from "@/components/admin/admin-dock";
 import { AdminMobileHeader } from "@/components/admin/admin-mobile-header";
 import type { UsuarioAdmin } from "@/components/admin/admin-sidebar";
 import { BuscaDesktop, BuscaMobile } from "@/components/admin/busca-lista";
+import { ChipIndicacaoDesktop, ChipIndicacaoMobile, SeloCupom } from "@/components/admin/cupons/indicacao";
 import { StatusLinha } from "@/components/admin/detalhe/interativos";
 import { ListaVazia } from "@/components/admin/estados";
 import { Paginacao } from "@/components/admin/paginacao";
@@ -38,8 +39,9 @@ function CartaoPedido({ p, href }: { p: Pedido; href: string }) {
       <div className="flex items-start justify-between gap-8">
         <div className="min-w-0">
           <h2 className="truncate text-17 font-bold">{p.nome}</h2>
-          <p className="text-14 text-gray-500">
-            {diaMes(p.criadoEm)} · {hora(p.criadoEm)}
+          <p className="flex flex-wrap items-center gap-x-8 gap-y-4 text-14 text-gray-500">
+            <span>{diaMes(p.criadoEm)} · {hora(p.criadoEm)}</span>
+            {p.indicacao && <SeloCupom codigo={p.indicacao.codigo} />}
           </p>
         </div>
         <StatusBadge tom={st.tom} size="xl">
@@ -116,7 +118,10 @@ function TabelaPedidos({ linhas, filtros, rodape }: { linhas: Pedido[]; filtros:
             <Link href={hrefDetalhe(p.id, filtros)} scroll={false} className="block truncate font-semibold before:absolute before:inset-0">
               {p.nome}
             </Link>
-            <p className="truncate text-14 text-gray-500">{telefone(p.whatsapp)}</p>
+            <p className="flex min-w-0 items-center gap-6 text-14 text-gray-500">
+              <span className="truncate">{telefone(p.whatsapp)}</span>
+              {p.indicacao && <SeloCupom codigo={p.indicacao.codigo} />}
+            </p>
           </div>
           <span role="cell" className="truncate font-semibold">
             {p.marcaModelo}
@@ -159,18 +164,18 @@ export function ListaPedidos({
   contadores,
   soDesktop,
 }: {
-  dados: { linhas: Pedido[]; total: number; contagens: Record<StatusPedido | "todos", number> };
+  dados: { comIndicacao: number; linhas: Pedido[]; total: number; contagens: Record<StatusPedido | "todos", number> };
   filtros: FiltrosLista<StatusPedido>;
   usuario: UsuarioAdmin;
   contadores: Contadores;
   soDesktop?: boolean;
 }) {
-  const { linhas, total, contagens } = dados;
+  const { linhas, total, contagens, comIndicacao } = dados;
   const abas = [
     { href: hrefLista(BASE_PEDIDOS, filtros, { status: null }), rotulo: "Todos", count: contagens.todos, selected: !filtros.status },
     ...STATUS_PEDIDOS.map((s) => ({ href: hrefLista(BASE_PEDIDOS, filtros, { status: s }), rotulo: STATUS_PEDIDO[s].rotulo, count: contagens[s], selected: filtros.status === s })),
   ];
-  const filtrado = !!(filtros.q || filtros.status);
+  const filtrado = !!(filtros.q || filtros.status || filtros.indicacao);
   const vazio = (
     <ListaVazia
       icone="travel_explore"
@@ -197,6 +202,7 @@ export function ListaPedidos({
                 {a.rotulo}
               </DarkChipLink>
             ))}
+            <ChipIndicacaoMobile base={BASE_PEDIDOS} filtros={filtros} total={comIndicacao} />
           </AdminMobileHeader>
           <div className="flex flex-1 flex-col gap-12 px-16 pt-16 pb-8 lg:hidden">
             {linhas.length ? linhas.map((p) => <CartaoPedido key={p.id} p={p} href={hrefDetalhe(p.id, filtros)} />) : vazio}
@@ -211,9 +217,10 @@ export function ListaPedidos({
           <h1 className="text-28 font-bold">Pedidos</h1>
           <p className="mt-4 text-15 text-gray-600">Solicitações do formulário “Não encontrou seu carro?”</p>
         </div>
-        <div className="flex items-center gap-12">
+        <div className="flex flex-wrap items-center gap-12">
           <BuscaDesktop inicial={filtros.q} status={filtros.status} placeholder={BUSCA} largura="w-320" />
           <SegmentedTabs items={abas} label="Status" />
+          <ChipIndicacaoDesktop base={BASE_PEDIDOS} filtros={filtros} total={comIndicacao} />
         </div>
         {linhas.length ? <TabelaPedidos linhas={linhas} filtros={filtros} rodape={total > linhas.length ? <Paginacao base={BASE_PEDIDOS} filtros={filtros} total={total} /> : null} /> : vazio}
       </div>

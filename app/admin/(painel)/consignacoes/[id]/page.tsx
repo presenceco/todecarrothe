@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BASE_CONSIGNACOES, ListaConsignacoes, OPCOES_STATUS_CONSIGNACAO, whatsappConsignacao } from "@/components/admin/consignacoes/lista-consignacoes";
 import { BotaoWhatsapp, DetalheMobile, DetalhePainel, FotosEnviadas, SecaoMobile, SecaoPainel, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
+import { LinkIndicacao } from "@/components/admin/cupons/indicacao";
 import { Anotacoes, BotaoCopiar, ExcluirRegistro, StatusEscolha } from "@/components/admin/detalhe/interativos";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { Icon } from "@/components/ui/icon";
@@ -124,6 +125,11 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         <SecaoPainel titulo="Carro" itens={semLargo(carro)} />
         <SecaoPainel titulo="Valor que o dono quer receber">{valor}</SecaoPainel>
         <SecaoPainel titulo="Contato" itens={semLargo(contato)} />
+        {c.indicacao && (
+          <SecaoPainel titulo="Indicação">
+            <LinkIndicacao indicacao={c.indicacao} />
+          </SecaoPainel>
+        )}
         <SecaoPainel titulo="Anotações da loja">
           <Anotacoes lista="consignacoes" id={c.id} inicial={c.anotacoes} placeholder={PLACEHOLDER} variante="painel" />
         </SecaoPainel>
@@ -152,6 +158,11 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
         <SecaoMobile titulo="Carro" itens={carro} />
         <SecaoMobile titulo="Valor que o dono quer receber">{valor}</SecaoMobile>
         <SecaoMobile titulo="Contato" itens={contato} />
+        {c.indicacao && (
+          <SecaoMobile titulo="Indicação">
+            <LinkIndicacao indicacao={c.indicacao} />
+          </SecaoMobile>
+        )}
         <SecaoMobile titulo="Anotações da loja" className="flex flex-col gap-10 [&>h2]:mb-0">
           <Anotacoes lista="consignacoes" id={c.id} inicial={c.anotacoes} placeholder={PLACEHOLDER} variante="cartao" />
         </SecaoMobile>

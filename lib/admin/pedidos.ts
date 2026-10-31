@@ -3,6 +3,7 @@ import { dataHora, moeda, telefone } from "@/lib/formato";
 import { FAIXAS_PRECO } from "@/lib/formularios/esquemas";
 import { STATUS_PEDIDO, type StatusPedido } from "@/lib/status";
 import { POR_PAGINA, termoBusca, type FiltrosLista } from "./filtros";
+import { CAMPOS_INDICACAO, paraIndicacao, textoIndicacao, type Indicacao, type LinhaIndicacao } from "./indicacao";
 import { exigirAdmin } from "./sessao";
 
 export const STATUS_PEDIDOS = Object.keys(STATUS_PEDIDO) as StatusPedido[];
@@ -25,9 +26,10 @@ export type Pedido = {
   anotacoes: string;
   status: StatusPedido;
   criadoEm: string;
+  indicacao: Indicacao | null;
 };
 
-const CAMPOS = "id, nome, whatsapp, marca_modelo, ano_minimo, faixa_preco, pagamento, prazo_meses, entrada, parcela_desejada, tem_troca, troca_modelo, troca_ano, anotacoes, status, created_at";
+const CAMPOS = `id, nome, whatsapp, marca_modelo, ano_minimo, faixa_preco, pagamento, prazo_meses, entrada, parcela_desejada, tem_troca, troca_modelo, troca_ano, anotacoes, status, created_at, ${CAMPOS_INDICACAO}`;
 
 type Linha = {
   id: string;
@@ -46,6 +48,7 @@ type Linha = {
   anotacoes: string;
   status: string;
   created_at: string;
+  cupons: LinhaIndicacao;
 };
 
 function paraPedido(l: Linha): Pedido {
@@ -66,6 +69,7 @@ function paraPedido(l: Linha): Pedido {
     anotacoes: l.anotacoes,
     status: l.status as StatusPedido,
     criadoEm: l.created_at,
+    indicacao: paraIndicacao(l.cupons),
   };
 }
 
@@ -94,17 +98,20 @@ export async function listarPedidos(f: FiltrosLista<StatusPedido>) {
   const inicio = (f.pagina - 1) * POR_PAGINA;
   let lista = supabase.from("pedidos_busca").select(CAMPOS, { count: "exact" }).order("created_at", { ascending: false }).range(inicio, inicio + POR_PAGINA - 1);
   if (f.status) lista = lista.eq("status", f.status);
+  if (f.indicacao) lista = lista.not("cupom_id", "is", null);
   lista = aplicarBusca(lista, f.q);
   const contar = (status?: StatusPedido) => {
     let c = supabase.from("pedidos_busca").select("id", { count: "exact", head: true });
     if (status) c = c.eq("status", status);
+    if (f.indicacao) c = c.not("cupom_id", "is", null);
     return aplicarBusca(c, f.q);
   };
-  const [res, todos, ...porStatus] = await Promise.all([lista, contar(), ...STATUS_PEDIDOS.map((s) => contar(s))]);
+  const comIndicacao = aplicarBusca(supabase.from("pedidos_busca").select("id", { count: "exact", head: true }).not("cupom_id", "is", null), f.q);
+  const [res, indicados, todos, ...porStatus] = await Promise.all([lista, comIndicacao, contar(), ...STATUS_PEDIDOS.map((s) => contar(s))]);
   // Página além da última (link antigo): lista vazia em vez de erro; a paginação mostra o intervalo certo.
   if (res.error && res.error.code !== "PGRST103") throw new Error(`Falha ao ler os pedidos: ${res.error.message}`);
   const contagens = Object.fromEntries(STATUS_PEDIDOS.map((s, i) => [s, porStatus[i].count ?? 0])) as Record<StatusPedido, number>;
-  return { linhas: (res.data ?? []).map(paraPedido), total: res.count ?? 0, contagens: { todos: todos.count ?? 0, ...contagens } };
+  return { linhas: ((res.data ?? []) as unknown as Linha[]).map(paraPedido), total: res.count ?? 0, contagens: { todos: todos.count ?? 0, ...contagens }, comIndicacao: indicados.count ?? 0 };
 }
 
 /** Pedido com as fotos do carro de entrada (URLs assinadas de 1 hora: o bucket "trocas" é privado). */
@@ -115,7 +122,7 @@ export async function obterPedido(id: string): Promise<(Pedido & { fotos: string
   const caminhos = [...data.pedido_fotos].sort((a, b) => a.ordem - b.ordem).map((f) => f.path);
   const { data: assinadas } = caminhos.length ? await supabase.storage.from("trocas").createSignedUrls(caminhos, 3600) : { data: [] };
   const fotos = (assinadas ?? []).map((a) => a.signedUrl).filter((u): u is string => !!u);
-  return { ...paraPedido(data), fotos };
+  return { ...paraPedido(data as unknown as Linha), fotos };
 }
 
 /** Texto do "Copiar dados" (todos os dados do pedido). */
@@ -141,6 +148,7 @@ export function textoPedido(p: Pedido & { fotos?: string[] }) {
       : []),
     `Troca: ${p.temTroca ? `Sim, ${p.trocaModelo ?? ""}${p.trocaAno ? ` ${p.trocaAno}` : ""}`.trim() : "Não"}`,
     ...(p.temTroca && p.fotos ? [`Fotos do carro de entrada: ${p.fotos.length}`] : []),
+    ...(p.indicacao ? [textoIndicacao(p.indicacao)] : []),
     ...(p.anotacoes.trim() ? ["", `Anotações da loja: ${p.anotacoes.trim()}`] : []),
   ].join("\n");
 }

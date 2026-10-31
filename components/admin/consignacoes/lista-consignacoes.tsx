@@ -3,6 +3,7 @@ import { AdminDock } from "@/components/admin/admin-dock";
 import { AdminMobileHeader } from "@/components/admin/admin-mobile-header";
 import type { UsuarioAdmin } from "@/components/admin/admin-sidebar";
 import { BuscaDesktop, BuscaMobile } from "@/components/admin/busca-lista";
+import { ChipIndicacaoDesktop, ChipIndicacaoMobile, SeloCupom } from "@/components/admin/cupons/indicacao";
 import { StatusLinha } from "@/components/admin/detalhe/interativos";
 import { ListaVazia } from "@/components/admin/estados";
 import { Paginacao } from "@/components/admin/paginacao";
@@ -73,8 +74,9 @@ function CartaoConsignacao({ c, href }: { c: Consignacao; href: string }) {
       <div className="flex items-start justify-between gap-8">
         <div className="min-w-0">
           <h2 className="truncate text-17 font-bold">{c.nome}</h2>
-          <p className="text-14 text-gray-500">
-            {diaMes(c.criadoEm)} · {hora(c.criadoEm)}
+          <p className="flex flex-wrap items-center gap-x-8 gap-y-4 text-14 text-gray-500">
+            <span>{diaMes(c.criadoEm)} · {hora(c.criadoEm)}</span>
+            {c.indicacao && <SeloCupom codigo={c.indicacao.codigo} />}
           </p>
         </div>
         <StatusBadge tom={st.tom} size="xl">
@@ -161,7 +163,10 @@ function TabelaConsignacoes({ linhas, filtros, rodape }: { linhas: Consignacao[]
               <Link href={hrefDetalheConsignacao(c.id, filtros)} scroll={false} className="block truncate font-semibold before:absolute before:inset-0">
                 {c.nome}
               </Link>
-              <p className="truncate text-14 text-gray-500">{telefone(c.whatsapp)}</p>
+              <p className="flex min-w-0 items-center gap-6 text-14 text-gray-500">
+              <span className="truncate">{telefone(c.whatsapp)}</span>
+              {c.indicacao && <SeloCupom codigo={c.indicacao.codigo} />}
+            </p>
             </div>
             <span role="cell">
               <EtiquetaForma forma={c.forma} />
@@ -212,13 +217,13 @@ export function ListaConsignacoes({
   contadores,
   soDesktop,
 }: {
-  dados: { linhas: Consignacao[]; total: number; contagens: Record<StatusConsignacao | "todos", number> };
+  dados: { comIndicacao: number; linhas: Consignacao[]; total: number; contagens: Record<StatusConsignacao | "todos", number> };
   filtros: FiltrosLista<StatusConsignacao>;
   usuario: UsuarioAdmin;
   contadores: Contadores;
   soDesktop?: boolean;
 }) {
-  const { linhas, total, contagens } = dados;
+  const { linhas, total, contagens, comIndicacao } = dados;
   const abas = [
     { href: hrefLista(BASE_CONSIGNACOES, filtros, { status: null }), rotulo: "Todas", count: contagens.todos, selected: !filtros.status },
     ...STATUS_CONSIGNACOES.map((s) => ({
@@ -228,7 +233,7 @@ export function ListaConsignacoes({
       selected: filtros.status === s,
     })),
   ];
-  const filtrado = !!(filtros.q || filtros.status);
+  const filtrado = !!(filtros.q || filtros.status || filtros.indicacao);
   const vazio = (
     <ListaVazia
       icone="handshake"
@@ -256,6 +261,7 @@ export function ListaConsignacoes({
                 {a.rotulo}
               </DarkChipLink>
             ))}
+            <ChipIndicacaoMobile base={BASE_CONSIGNACOES} filtros={filtros} total={comIndicacao} />
           </AdminMobileHeader>
           <div className="flex flex-1 flex-col gap-12 px-16 pt-16 pb-8 lg:hidden">
             {linhas.length ? linhas.map((c) => <CartaoConsignacao key={c.id} c={c} href={hrefDetalheConsignacao(c.id, filtros)} />) : vazio}
@@ -273,6 +279,7 @@ export function ListaConsignacoes({
         <div className="flex flex-wrap items-center gap-12">
           <BuscaDesktop inicial={filtros.q} status={filtros.status} placeholder={BUSCA} largura="w-320" />
           <SegmentedTabs items={abas} label="Status" />
+          <ChipIndicacaoDesktop base={BASE_CONSIGNACOES} filtros={filtros} total={comIndicacao} />
         </div>
         {linhas.length ? <TabelaConsignacoes linhas={linhas} filtros={filtros} rodape={paginacao} /> : vazio}
       </div>

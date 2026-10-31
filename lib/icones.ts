@@ -22,6 +22,7 @@ export const ICONES = [
   "close",
   "cloud_done",
   "cloud_upload",
+  "confirmation_number",
   "content_copy",
   "delete",
   "directions",

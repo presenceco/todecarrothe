@@ -6,6 +6,7 @@ import { apagamentoDadosSensiveis } from "@/lib/lgpd";
 import { STATUS_SIMULACAO, type StatusSimulacao } from "@/lib/status";
 import { POR_PAGINA, termoBusca, type FiltrosLista } from "./filtros";
 import { urlsFotosVeiculo } from "./fotos-veiculo";
+import { CAMPOS_INDICACAO, paraIndicacao, textoIndicacao, type Indicacao, type LinhaIndicacao } from "./indicacao";
 import { exigirAdmin } from "./sessao";
 
 export const STATUS_SIMULACOES = Object.keys(STATUS_SIMULACAO) as StatusSimulacao[];
@@ -43,12 +44,13 @@ export type Simulacao = {
   criadoEm: string;
   /** Quando CPF, nascimento e renda foram apagados; null enquanto estão guardados. */
   dadosApagadosEm: string | null;
+  indicacao: Indicacao | null;
   veiculo: VeiculoSimulacao | null;
   valorAproximado: number | null;
 };
 
 const CAMPOS =
-  "id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, dados_sensiveis_apagados_em, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, status, publicado, veiculo_fotos (path, ordem))";
+  `id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, dados_sensiveis_apagados_em, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, status, publicado, veiculo_fotos (path, ordem)), ${CAMPOS_INDICACAO}`;
 
 type Linha = {
   id: string;
@@ -68,6 +70,7 @@ type Linha = {
   status: string;
   created_at: string;
   dados_sensiveis_apagados_em: string | null;
+  cupons: LinhaIndicacao;
   veiculo_nome: string | null;
   veiculo_preco: number | null;
   valor_aproximado: number | null;
@@ -120,6 +123,7 @@ function paraSimulacao(l: Linha): Simulacao {
     status: l.status as StatusSimulacao,
     criadoEm: l.created_at,
     dadosApagadosEm: l.dados_sensiveis_apagados_em,
+    indicacao: paraIndicacao(l.cupons),
     valorAproximado: l.valor_aproximado === null ? null : Number(l.valor_aproximado),
     veiculo:
       l.veiculo_nome && l.veiculo_preco !== null
@@ -158,17 +162,20 @@ export async function listarSimulacoes(f: FiltrosLista<StatusSimulacao>) {
   const inicio = (f.pagina - 1) * POR_PAGINA;
   let lista = supabase.from("simulacoes").select(CAMPOS, { count: "exact" }).order("created_at", { ascending: false }).range(inicio, inicio + POR_PAGINA - 1);
   if (f.status) lista = lista.eq("status", f.status);
+  if (f.indicacao) lista = lista.not("cupom_id", "is", null);
   lista = aplicarBusca(lista, f.q);
   const contar = (status?: StatusSimulacao) => {
     let c = supabase.from("simulacoes").select("id", { count: "exact", head: true });
     if (status) c = c.eq("status", status);
+    if (f.indicacao) c = c.not("cupom_id", "is", null);
     return aplicarBusca(c, f.q);
   };
-  const [res, todos, ...porStatus] = await Promise.all([lista, contar(), ...STATUS_SIMULACOES.map((s) => contar(s))]);
+  const comIndicacao = aplicarBusca(supabase.from("simulacoes").select("id", { count: "exact", head: true }).not("cupom_id", "is", null), f.q);
+  const [res, indicados, todos, ...porStatus] = await Promise.all([lista, comIndicacao, contar(), ...STATUS_SIMULACOES.map((s) => contar(s))]);
   // Página além da última (link antigo): lista vazia em vez de erro; a paginação mostra o intervalo certo.
   if (res.error && res.error.code !== "PGRST103") throw new Error(`Falha ao ler as simulações: ${res.error.message}`);
   const contagens = Object.fromEntries(STATUS_SIMULACOES.map((s, i) => [s, porStatus[i].count ?? 0])) as Record<StatusSimulacao, number>;
-  return { linhas: await comCapas(supabase, (res.data ?? []) as unknown as Linha[]), total: res.count ?? 0, contagens: { todos: todos.count ?? 0, ...contagens } };
+  return { linhas: await comCapas(supabase, (res.data ?? []) as unknown as Linha[]), total: res.count ?? 0, contagens: { todos: todos.count ?? 0, ...contagens }, comIndicacao: indicados.count ?? 0 };
 }
 
 export async function obterSimulacao(id: string): Promise<Simulacao | null> {
@@ -202,6 +209,7 @@ export function textoSimulacao(s: Simulacao) {
     `Prazo: ${s.prazo} meses`,
     `Parcela que busca: ${s.parcela ? moeda(s.parcela) : "não informada"}`,
     `Troca: ${s.temTroca ? `Sim, ${s.trocaModelo ?? ""}${s.trocaAno ? ` ${s.trocaAno}` : ""}`.trim() : "Não"}`,
+    ...(s.indicacao ? [textoIndicacao(s.indicacao)] : []),
     "",
     s.consentimento ? "Autorizou o uso dos dados para simulação de crédito." : "",
   ]

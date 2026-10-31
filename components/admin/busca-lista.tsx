@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 
 /**
  * Busca das listas do admin, na URL (?q=): troca a página sem recarregar, 300ms depois da última tecla,
- * mantendo o filtro de status e voltando para a página 1.
+ * mantendo os filtros de status e de indicação e voltando para a página 1.
  */
 function useBusca(inicial: string, status: string | null) {
   const router = useRouter();
@@ -24,6 +24,7 @@ function useBusca(inicial: string, status: string | null) {
       const p = new URLSearchParams();
       if (termo) p.set("q", termo);
       if (status) p.set("status", status);
+      if (new URLSearchParams(window.location.search).get("indicacao") === "1") p.set("indicacao", "1");
       const s = p.toString();
       iniciar(() => router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false }));
     }, 300);
