@@ -56,6 +56,7 @@ export type Database = {
           consentimento_em: string
           consentimento_versao: string
           cor: string
+          cupom_id: string | null
           created_at: string
           detalhes: string
           forma_venda: string
@@ -79,6 +80,7 @@ export type Database = {
           consentimento_em: string
           consentimento_versao: string
           cor: string
+          cupom_id?: string | null
           created_at?: string
           detalhes?: string
           forma_venda: string
@@ -102,6 +104,7 @@ export type Database = {
           consentimento_em?: string
           consentimento_versao?: string
           cor?: string
+          cupom_id?: string | null
           created_at?: string
           detalhes?: string
           forma_venda?: string
@@ -116,6 +119,100 @@ export type Database = {
           valor_pretendido?: number | null
           versao?: string
           whatsapp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consignacoes_cupom_id_fkey"
+            columns: ["cupom_id"]
+            isOneToOne: false
+            referencedRelation: "cupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consignacoes_cupom_id_fkey"
+            columns: ["cupom_id"]
+            isOneToOne: false
+            referencedRelation: "cupons_resumo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cupom_cliques: {
+        Row: {
+          created_at: string
+          cupom_id: string
+          id: string
+          veiculo_id: string | null
+          veiculo_nome: string | null
+        }
+        Insert: {
+          created_at?: string
+          cupom_id: string
+          id?: string
+          veiculo_id?: string | null
+          veiculo_nome?: string | null
+        }
+        Update: {
+          created_at?: string
+          cupom_id?: string
+          id?: string
+          veiculo_id?: string | null
+          veiculo_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cupom_cliques_cupom_id_fkey"
+            columns: ["cupom_id"]
+            isOneToOne: false
+            referencedRelation: "cupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cupom_cliques_cupom_id_fkey"
+            columns: ["cupom_id"]
+            isOneToOne: false
+            referencedRelation: "cupons_resumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cupom_cliques_veiculo_id_fkey"
+            columns: ["veiculo_id"]
+            isOneToOne: false
+            referencedRelation: "veiculos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cupons: {
+        Row: {
+          ativo: boolean
+          codigo: string
+          created_at: string
+          id: string
+          indicador_nome: string
+          indicador_whatsapp: string | null
+          observacao: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo: string
+          created_at?: string
+          id?: string
+          indicador_nome: string
+          indicador_whatsapp?: string | null
+          observacao?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string
+          created_at?: string
+          id?: string
+          indicador_nome?: string
+          indicador_whatsapp?: string | null
+          observacao?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -217,6 +314,7 @@ export type Database = {
           anotacoes: string
           consentimento_em: string
           consentimento_versao: string
+          cupom_id: string | null
           created_at: string
           entrada: number | null
           faixa_preco: string
@@ -238,6 +336,7 @@ export type Database = {
           anotacoes?: string
           consentimento_em: string
           consentimento_versao: string
+          cupom_id?: string | null
           created_at?: string
           entrada?: number | null
           faixa_preco: string
@@ -259,6 +358,7 @@ export type Database = {
           anotacoes?: string
           consentimento_em?: string
           consentimento_versao?: string
+          cupom_id?: string | null
           created_at?: string
           entrada?: number | null
           faixa_preco?: string
@@ -275,7 +375,22 @@ export type Database = {
           updated_at?: string
           whatsapp?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_busca_cupom_id_fkey"
+            columns: ["cupom_id"]
+            isOneToOne: false
+            referencedRelation: "cupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_busca_cupom_id_fkey"
+            columns: ["cupom_id"]
+            isOneToOne: false
+            referencedRelation: "cupons_resumo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       selos_personalizados: {
         Row: {
@@ -300,6 +415,7 @@ export type Database = {
           consentimento_em: string
           consentimento_versao: string
           cpf: string | null
+          cupom_id: string | null
           created_at: string
           dados_sensiveis_apagados_em: string | null
           entrada: number
@@ -325,6 +441,7 @@ export type Database = {
           consentimento_em: string
           consentimento_versao: string
           cpf?: string | null
+          cupom_id?: string | null
           created_at?: string
           dados_sensiveis_apagados_em?: string | null
           entrada: number
@@ -350,6 +467,7 @@ export type Database = {
           consentimento_em?: string
           consentimento_versao?: string
           cpf?: string | null
+          cupom_id?: string | null
           created_at?: string
           dados_sensiveis_apagados_em?: string | null
           entrada?: number
@@ -372,6 +490,20 @@ export type Database = {
           whatsapp?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "simulacoes_cupom_id_fkey"
+            columns: ["cupom_id"]
+            isOneToOne: false
+            referencedRelation: "cupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulacoes_cupom_id_fkey"
+            columns: ["cupom_id"]
+            isOneToOne: false
+            referencedRelation: "cupons_resumo"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "simulacoes_veiculo_id_fkey"
             columns: ["veiculo_id"]
@@ -568,7 +700,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      cupons_resumo: {
+        Row: {
+          ativo: boolean | null
+          codigo: string | null
+          created_at: string | null
+          id: string | null
+          indicador_nome: string | null
+          indicador_whatsapp: string | null
+          observacao: string | null
+          total_cliques: number | null
+          total_consignacoes: number | null
+          total_pedidos: number | null
+          total_simulacoes: number | null
+          ultimo_uso: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       eh_admin: { Args: never; Returns: boolean }
