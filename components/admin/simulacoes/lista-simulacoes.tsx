@@ -129,10 +129,8 @@ function TabelaSimulacoes({ linhas, filtros, rodape }: { linhas: Simulacao[]; fi
               <Link href={hrefDetalheSimulacao(s.id, filtros)} scroll={false} className="block truncate font-semibold before:absolute before:inset-0">
                 {s.nome}
               </Link>
-              <p className="flex min-w-0 items-center gap-6 text-14 text-gray-500">
-              <span className="truncate">{telefone(s.whatsapp)}</span>
-              {s.indicacao && <SeloCupom codigo={s.indicacao.codigo} />}
-            </p>
+              <p className="truncate text-14 text-gray-500">{telefone(s.whatsapp)}</p>
+            {s.indicacao && <SeloCupom codigo={s.indicacao.codigo} />}
             </div>
             <div role="cell" className="flex min-w-0 items-center gap-12">
               <FotoSimulacao s={s} className="h-48 w-64 rounded-8" sizes="64px" />

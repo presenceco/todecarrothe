@@ -50,7 +50,7 @@ function Camada({ origem, onFim }: { origem: Element | null; onFim: () => void }
         <Icon name="check_circle" size={28} fill className="flex-none text-brand" />
         <span>
           <span className="block text-17 leading-125 font-bold">Cupom aplicado!</span>
-          <span className="mt-2 block text-15 leading-135 text-gray-700">Que bom ter você aqui por indicação.</span>
+          <span className="mt-2 block text-15 leading-130 text-gray-700">Que bom ter você aqui por indicação.</span>
         </span>
       </button>
     </div>

@@ -7,7 +7,7 @@ import type { Indicacao } from "@/lib/admin/indicacao";
 /** Selo com o código do cupom, nos cartões e nas linhas das listas de contatos. */
 export function SeloCupom({ codigo }: { codigo: string }) {
   return (
-    <span className="inline-flex flex-none items-center gap-4 rounded-pill bg-brand-50 px-8 py-2 text-14 font-semibold text-brand">
+    <span className="inline-flex max-w-full flex-none items-center gap-4 rounded-pill bg-brand-50 px-8 py-0 text-14 font-semibold text-brand">
       <Icon name="confirmation_number" size={16} />
       <span className="sr-only">Cupom de indicação:</span>
       {codigo}

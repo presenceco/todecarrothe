@@ -118,10 +118,8 @@ function TabelaPedidos({ linhas, filtros, rodape }: { linhas: Pedido[]; filtros:
             <Link href={hrefDetalhe(p.id, filtros)} scroll={false} className="block truncate font-semibold before:absolute before:inset-0">
               {p.nome}
             </Link>
-            <p className="flex min-w-0 items-center gap-6 text-14 text-gray-500">
-              <span className="truncate">{telefone(p.whatsapp)}</span>
-              {p.indicacao && <SeloCupom codigo={p.indicacao.codigo} />}
-            </p>
+            <p className="truncate text-14 text-gray-500">{telefone(p.whatsapp)}</p>
+            {p.indicacao && <SeloCupom codigo={p.indicacao.codigo} />}
           </div>
           <span role="cell" className="truncate font-semibold">
             {p.marcaModelo}

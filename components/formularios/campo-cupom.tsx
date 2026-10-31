@@ -19,7 +19,17 @@ const NAO_ENCONTRADO = "Cupom não encontrado. Confira o código ou envie sem cu
  * Cupom de indicação (opcional), nos formulários e no painel do "Tenho interesse". Confere ao sair do campo e
  * nunca bloqueia o envio. Com cupom guardado na aba, mostra "Cupom aplicado: JOAO" e o link "Remover".
  */
-export function CampoCupom({ ref, valor, onValor }: { ref?: React.Ref<CampoCupomRef>; valor: string; onValor: (v: string) => void }) {
+export function CampoCupom({
+  ref,
+  valor,
+  onValor,
+  rotulo = "Tem cupom de indicação?",
+}: {
+  ref?: React.Ref<CampoCupomRef>;
+  valor: string;
+  onValor: (v: string) => void;
+  rotulo?: string;
+}) {
   const guardado = useCupomGuardado();
   const [estado, setEstado] = useState<"parado" | "conferindo" | "invalido">("parado");
   const [anuncio, setAnuncio] = useState("");
@@ -88,7 +98,7 @@ export function CampoCupom({ ref, valor, onValor }: { ref?: React.Ref<CampoCupom
           name="cupom"
           label={
             <>
-              Tem cupom de indicação? <span className="font-normal text-gray-500">(opcional)</span>
+              {rotulo} <span className="font-normal text-gray-500">(opcional)</span>
             </>
           }
           hint={

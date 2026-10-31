@@ -163,10 +163,8 @@ function TabelaConsignacoes({ linhas, filtros, rodape }: { linhas: Consignacao[]
               <Link href={hrefDetalheConsignacao(c.id, filtros)} scroll={false} className="block truncate font-semibold before:absolute before:inset-0">
                 {c.nome}
               </Link>
-              <p className="flex min-w-0 items-center gap-6 text-14 text-gray-500">
-              <span className="truncate">{telefone(c.whatsapp)}</span>
-              {c.indicacao && <SeloCupom codigo={c.indicacao.codigo} />}
-            </p>
+              <p className="truncate text-14 text-gray-500">{telefone(c.whatsapp)}</p>
+            {c.indicacao && <SeloCupom codigo={c.indicacao.codigo} />}
             </div>
             <span role="cell">
               <EtiquetaForma forma={c.forma} />

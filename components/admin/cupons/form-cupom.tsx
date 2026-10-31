@@ -130,8 +130,8 @@ export function FormCupom({ id, inicial, codigoTravado }: { id: string | null; i
       <Switch name="ativo" checked={c.ativo} onChange={(e) => definir("ativo", e.target.checked)} className="min-h-48">
         Cupom ativo
       </Switch>
-      <div className="flex items-center gap-12">
-        <Button type="submit" size="lg" disabled={pendente} aria-busy={pendente} className="gap-8 lg:px-24">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-12">
+        <Button type="submit" size="lg" disabled={pendente} aria-busy={pendente} className="w-full gap-8 lg:w-auto lg:px-24">
           {pendente && <Icon name="progress_activity" size={20} className="animate-spin" />}
           {id ? "Salvar alterações" : "Criar cupom"}
         </Button>

@@ -61,12 +61,12 @@ function CartaoCupom({ c }: { c: Cupom }) {
   );
 }
 
-const COLUNAS = "grid grid-cols-[130px_1.6fr_100px_90px_80px_100px_90px_100px] items-center gap-12 px-20";
+const COLUNAS = "grid min-w-[980px] grid-cols-[140px_minmax(140px,1fr)_100px_110px_80px_130px_80px_100px] items-center gap-12 px-20";
 
 /** Tabela de cupons do desktop. A linha abre o detalhe. */
 function TabelaCupons({ linhas, rodape }: { linhas: Cupom[]; rodape: React.ReactNode }) {
   return (
-    <div role="table" aria-label="Cupons de indicação" className="rounded-16 border border-gray-150 bg-white">
+    <div role="table" aria-label="Cupons de indicação" className="overflow-x-auto rounded-16 border border-gray-150 bg-white">
       <div role="row" className={cn(COLUNAS, "h-45 rounded-t-16 border-b border-gray-150 bg-gray-25 text-14 font-semibold tracking-[0.06em] text-gray-500")}>
         <span role="columnheader">CÓDIGO</span>
         <span role="columnheader">INDICADOR</span>

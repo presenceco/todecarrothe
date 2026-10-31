@@ -33,6 +33,8 @@ export function BotaoInteresse({
   children: React.ReactNode;
 }) {
   const [aberto, setAberto] = useState(false);
+  // O painel só existe depois do primeiro toque: a página tem dois botões (mobile e desktop) e um campo por painel.
+  const [montado, setMontado] = useState(false);
   const [digitado, setDigitado] = useState("");
   const [seguindo, setSeguindo] = useState(false);
   const avisado = useRef(false);
@@ -68,6 +70,7 @@ export function BotaoInteresse({
           if (guardado) irParaWhatsapp(mensagem, slug, guardado.codigo);
           else {
             avisado.current = false;
+            setMontado(true);
             setAberto(true);
           }
         }}
@@ -75,25 +78,27 @@ export function BotaoInteresse({
         {children}
       </ButtonAnchor>
 
-      <Sheet
-        open={aberto}
-        onClose={() => setAberto(false)}
-        labelledBy={idTitulo}
-        centroNoDesktop
-        className="flex flex-col gap-16 rounded-t-24 bg-white px-20 pt-10 pb-[calc(28px+env(safe-area-inset-bottom,0px))] text-ink lg:p-28"
-      >
-        <div data-sheet-drag className="lg:hidden">
-          <SheetHandle />
-        </div>
-        <h2 id={idTitulo} className="mt-8 text-22 leading-125 font-bold lg:mt-0">
-          Tem cupom de indicação?
-        </h2>
-        <CampoCupom ref={campo} valor={digitado} onValor={setDigitado} />
-        <Button variant="whatsapp" size="lg" onClick={() => void continuar()} disabled={seguindo} aria-busy={seguindo} className="gap-8">
-          <Icon name="chat" size={20} fill />
-          Continuar no WhatsApp
-        </Button>
-      </Sheet>
+      {montado && (
+        <Sheet
+          open={aberto}
+          onClose={() => setAberto(false)}
+          labelledBy={idTitulo}
+          centroNoDesktop
+          className="flex flex-col gap-16 rounded-t-24 bg-white px-20 pt-10 pb-[calc(28px+env(safe-area-inset-bottom,0px))] text-ink lg:p-28"
+        >
+          <div data-sheet-drag className="lg:hidden">
+            <SheetHandle />
+          </div>
+          <h2 id={idTitulo} className="mt-8 text-22 leading-125 font-bold lg:mt-0">
+            Tem cupom de indicação?
+          </h2>
+          <CampoCupom ref={campo} valor={digitado} onValor={setDigitado} rotulo="Código do cupom" />
+          <Button variant="whatsapp" size="lg" onClick={() => void continuar()} disabled={seguindo} aria-busy={seguindo} className="gap-8">
+            <Icon name="chat" size={20} fill />
+            Continuar no WhatsApp
+          </Button>
+        </Sheet>
+      )}
     </>
   );
 }
