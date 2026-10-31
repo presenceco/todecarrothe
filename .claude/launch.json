@@ -8,6 +8,12 @@
       "port": 3000
     },
     {
+      "name": "producao",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["node_modules/next/dist/bin/next", "start", "-p", "3100"],
+      "port": 3100
+    },
+    {
       "name": "referencias",
       "runtimeExecutable": "py",
       "runtimeArgs": ["-m", "http.server", "4400", "--directory", "referencias"],

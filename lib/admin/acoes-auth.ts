@@ -9,12 +9,13 @@ import { clienteServidor } from "@/lib/supabase/servidor";
 import { COOKIE_SESSAO_CURTA } from "./cookies";
 import { emailDoAdmin, emailDoPainel } from "./entrada";
 
-export type EstadoEntrar = { erro?: string; email?: string };
+export type EstadoEntrar = { erro?: string };
 export type EstadoEsqueci = { enviado?: boolean };
 export type EstadoRedefinir = { erro?: string };
 
-const ERRO_CREDENCIAIS = "E-mail ou senha incorretos.";
+const ERRO_CREDENCIAIS = "Senha incorreta.";
 const ERRO_LIMITE = "Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.";
+const ERRO_INDISPONIVEL = "Não foi possível entrar agora. Tente de novo em alguns minutos.";
 
 /** Tentativas de login por IP (o hash do IP é o mesmo dos formulários públicos). */
 const LIMITE_LOGIN: Limite = { quantidade: 5, janela: "15 minutes" };
@@ -27,21 +28,24 @@ function destinoSeguro(volta: FormDataEntryValue | null) {
   return v.startsWith("/admin/") && !v.startsWith("//") && !v.includes("\\") ? v : "/admin/estoque";
 }
 
-/** Entrar no painel (11/26). Só o usuário com papel admin passa; qualquer outro é desconectado. */
+/**
+ * Entrar no painel (11/26): só a senha, em qualquer ambiente. O e-mail fica no servidor: ADMIN_EMAIL ou, sem a
+ * variável, o do admin no Supabase Auth. Só o usuário com papel admin passa; qualquer outro é desconectado.
+ */
 export async function entrar(_anterior: EstadoEntrar, dados: FormData): Promise<EstadoEntrar> {
-  // Com ADMIN_EMAIL, a tela pede só a senha; o e-mail digitado (se houver) é o único que volta para a tela.
-  const digitado = String(dados.get("email") ?? "").trim().toLowerCase();
-  const email = digitado || emailDoPainel() || "";
   const senha = String(dados.get("senha") ?? "");
-  if (!email || !senha) return { erro: emailDoPainel() ? "Informe a senha." : "Informe o e-mail e a senha.", email: digitado };
+  if (!senha) return { erro: "Informe a senha." };
 
   // Acima de 5 tentativas em 15 minutos no mesmo IP, nem chega ao Supabase.
+  let email: string | null;
   try {
-    if (!(await dentroDoLimite("login", LIMITE_LOGIN))) return { erro: ERRO_LIMITE, email: digitado };
+    if (!(await dentroDoLimite("login", LIMITE_LOGIN))) return { erro: ERRO_LIMITE };
+    email = emailDoPainel() ?? (await emailDoAdmin());
   } catch (e) {
-    console.error("entrar limite", resumoErro(e));
-    return { erro: "Não foi possível entrar agora. Tente de novo em alguns minutos.", email: digitado };
+    console.error("entrar", resumoErro(e));
+    return { erro: ERRO_INDISPONIVEL };
   }
+  if (!email) return { erro: ERRO_INDISPONIVEL };
 
   const loja = await cookies();
   if (dados.get("manter") === "on") loja.delete(COOKIE_SESSAO_CURTA);
@@ -52,11 +56,11 @@ export async function entrar(_anterior: EstadoEntrar, dados: FormData): Promise<
   if (error) {
     // Só o código do Supabase (nunca a senha), para diagnosticar recusas que não são de senha errada.
     if (error.code !== "invalid_credentials") console.error("entrar", resumoErro(error));
-    return { erro: error.status === 429 ? ERRO_LIMITE : emailDoPainel() && !digitado ? "Senha incorreta." : ERRO_CREDENCIAIS, email: digitado };
+    return { erro: error.status === 429 ? ERRO_LIMITE : ERRO_CREDENCIAIS };
   }
   if (data.user?.app_metadata?.role !== "admin") {
     await supabase.auth.signOut();
-    return { erro: ERRO_CREDENCIAIS, email: digitado };
+    return { erro: ERRO_CREDENCIAIS };
   }
   redirect(destinoSeguro(dados.get("volta")));
 }

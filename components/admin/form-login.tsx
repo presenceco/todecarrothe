@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { TextInput } from "@/components/ui/field";
 import { entrar, type EstadoEntrar } from "@/lib/admin/acoes-auth";
 import { AvisoEntrada, BotaoEntrada, CampoSenha, ManterConectado } from "./campos-entrada";
 
@@ -11,30 +10,15 @@ const AVISOS: Record<string, string> = {
 };
 
 /**
- * Formulário de entrada (11/26). O e-mail digitado continua no campo se a senha estiver errada.
- * `soSenha` (ADMIN_EMAIL configurado): só a senha; o e-mail do painel fica no servidor.
+ * Formulário de entrada (11/26): só a senha, em qualquer ambiente. O e-mail do painel fica no servidor.
  */
-export function FormLogin({ volta, aviso, soSenha }: { volta?: string; aviso?: string; soSenha?: boolean }) {
+export function FormLogin({ volta, aviso }: { volta?: string; aviso?: string }) {
   const [estado, acao, pendente] = useActionState<EstadoEntrar, FormData>(entrar, {});
   return (
     <form action={acao} className="contents">
       {volta && <input type="hidden" name="volta" value={volta} />}
       <AvisoEntrada mensagem={estado.erro} />
       {!estado.erro && aviso && <AvisoEntrada mensagem={AVISOS[aviso]} tom="info" />}
-      {!soSenha && (
-        <TextInput
-          name="email"
-          label="E-mail"
-          type="email"
-          autoComplete="username"
-          inputMode="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          required
-          defaultValue={estado.email}
-          aria-invalid={estado.erro ? true : undefined}
-        />
-      )}
       <CampoSenha name="senha" label="Senha" autoComplete="current-password" erro={!!estado.erro} />
       <div className="flex items-center justify-between gap-12">
         <ManterConectado />

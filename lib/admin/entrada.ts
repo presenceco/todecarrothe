@@ -3,20 +3,23 @@ import { resumoErro } from "@/lib/log";
 import { clienteServico } from "@/lib/supabase/servico";
 
 /**
- * E-mail do painel quando a entrada pede só a senha (cadeado do rodapé). Vem de ADMIN_EMAIL e nunca vai
- * para o navegador: a tela não mostra nem envia o e-mail. Sem a variável, a entrada pede e-mail e senha.
+ * E-mail do painel em ADMIN_EMAIL (opcional). Nunca vai para o navegador: a entrada pede só a senha e o e-mail
+ * fica no servidor. Sem a variável, o e-mail vem do Supabase Auth (`emailDoAdmin`).
  */
 export function emailDoPainel() {
   return process.env.ADMIN_EMAIL?.trim().toLowerCase() || null;
 }
 
 /**
- * E-mail do dono para o "Esqueci minha senha": o do usuário com app_metadata.role = "admin" no Supabase Auth
- * (cliente de serviço). ADMIN_EMAIL só entra se a busca falhar. Sem admin cadastrado, null.
+ * E-mail do dono, para a entrada e o "Esqueci minha senha": o do usuário com app_metadata.role = "admin" no
+ * Supabase Auth (cliente de serviço). ADMIN_EMAIL só entra se a busca falhar. Sem admin cadastrado, null.
  */
 export async function emailDoAdmin() {
-  const { data, error } = await clienteServico().auth.admin.listUsers({ perPage: 1000 });
-  if (error) {
+  const resposta = await clienteServico()
+    .auth.admin.listUsers({ perPage: 1000 })
+    .catch((error: unknown) => ({ data: null, error }));
+  const { data, error } = resposta;
+  if (error || !data) {
     console.error("emailDoAdmin", resumoErro(error));
     return emailDoPainel();
   }
