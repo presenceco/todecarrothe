@@ -61,7 +61,7 @@ export type SecaoPolitica = { titulo: string; paragrafos: readonly string[] };
  * (lib/consentimento.ts).
  */
 export const politicaPrivacidade: { atualizadaEm: string; secoes: readonly SecaoPolitica[] } = {
-  atualizadaEm: "2026-10-27",
+  atualizadaEm: "2026-10-31",
   secoes: [
     {
       titulo: "1. Quem somos e como falar com a gente",
@@ -79,7 +79,9 @@ export const politicaPrivacidade: { atualizadaEm: string; secoes: readonly Secao
         "Simular financiamento: nome completo, CPF, data de nascimento, WhatsApp, renda mensal, valor de entrada, prazo, parcela que você busca, se tem CNH e, se tiver carro para dar na troca, o modelo e o ano dele. Guardamos também o carro escolhido e o preço dele no momento do envio, ou o valor aproximado do carro, quando a simulação é feita sem escolher um carro do estoque.",
         "Não encontrou seu carro?: nome, WhatsApp, marca e modelo procurados, ano mínimo, faixa de preço e forma de pagamento. No financiado, também quantas parcelas, a entrada e o valor da parcela, se você informar. Se tiver carro para dar de entrada: modelo, ano e até 8 fotos dele.",
         "Venda seu carro: nome, WhatsApp, como prefere vender (venda direta, troca ou consignação), marca, modelo, versão, ano, quilometragem, câmbio, cor, se está quitado, valor pretendido, os detalhes que você escrever e até 8 fotos do carro.",
-        "Em todos os formulários: a data e a hora em que você marcou a autorização e a versão do texto aceito. Para evitar envios em massa por robôs, registramos também um código irreversível (hash) gerado a partir do seu endereço IP. O IP em si não é guardado, e esse código é apagado automaticamente em até 2 dias.",
+        "Em todos os formulários: o código de indicação, se você informar, a data e a hora em que você marcou a autorização e a versão do texto aceito. Para evitar envios em massa por robôs, registramos também um código irreversível (hash) gerado a partir do seu endereço IP, inclusive quando um código de indicação é conferido ou usado. O IP em si não é guardado, e esse código é apagado automaticamente em até 2 dias.",
+        "No botão Tenho interesse, se houver código de indicação, ele vai na mensagem do WhatsApp e contamos o clique por código e por carro, sem nenhum dado seu.",
+        "Pessoas que indicam a loja: guardamos o nome e o WhatsApp só para identificar as indicações e combinar o prêmio, até o indicador pedir a exclusão pelo canal da seção 1.",
       ],
     },
     {
@@ -112,6 +114,7 @@ export const politicaPrivacidade: { atualizadaEm: string; secoes: readonly Secao
         "Nome, WhatsApp e o histórico da negociação (carro, valores, fotos e anotações da loja) ficam guardados para o atendimento e para futuras negociações, até você pedir a exclusão pelo canal da seção 1.",
         "Quando você pede a exclusão, apagamos o registro completo, inclusive as fotos que você enviou.",
         "Fotos de envios que não foram concluídos são apagadas automaticamente em até 2 dias.",
+        "Quando um indicador pede a exclusão, apagamos o nome e o WhatsApp dele. O código de indicação continua no histórico dos atendimentos.",
         "Se o carro que você ofereceu for cadastrado no nosso estoque, os dados e as fotos do veículo (sem os seus dados pessoais) passam a fazer parte do anúncio.",
       ],
     },
@@ -137,6 +140,7 @@ export const politicaPrivacidade: { atualizadaEm: string; secoes: readonly Secao
       paragrafos: [
         "O site público não usa cookies de rastreamento nem de publicidade.",
         "Só o painel da loja usa cookies de sessão, necessários para o login.",
+        "O código de indicação fica guardado só no seu navegador, até você fechar a aba.",
         "Os botões de WhatsApp, Instagram, Facebook e do mapa levam a sites de outras empresas, que têm políticas próprias.",
       ],
     },

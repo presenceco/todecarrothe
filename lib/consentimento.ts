@@ -3,7 +3,7 @@
  * consentimento. Mude a versão sempre que mudar qualquer texto abaixo ou a política de privacidade: use a data
  * da política (politicaPrivacidade.atualizadaEm, em lib/loja.ts).
  */
-export const CONSENTIMENTO_VERSAO = "2026-10-27";
+export const CONSENTIMENTO_VERSAO = "2026-10-31";
 
 export const TEXTO_CONSENTIMENTO = {
   simulacao: "Autorizo o uso dos meus dados para a simulação de crédito",
