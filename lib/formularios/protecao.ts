@@ -10,8 +10,8 @@ import { clienteServico } from "@/lib/supabase/servico";
  * - limite de envios por IP (o IP nunca é gravado: só um hash SHA-256 com sal).
  */
 
-/** Tipos contados por IP: os três formulários públicos e, no painel, o login e o "Esqueci minha senha". */
-export type Formulario = "simulacao" | "pedido_busca" | "consignacao" | "login" | "redefinicao";
+/** Tipos contados por IP: os três formulários públicos, o cupom de indicação (verificações e cliques, separados) e, no painel, o login e o "Esqueci minha senha". */
+export type Formulario = "simulacao" | "pedido_busca" | "consignacao" | "login" | "redefinicao" | "cupom" | "cupom_clique";
 
 /** Quantidade de envios por janela (intervalo do Postgres, ex.: "15 minutes"). */
 export type Limite = { quantidade: number; janela: string };

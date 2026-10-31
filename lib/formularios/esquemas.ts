@@ -136,6 +136,8 @@ export type CamposSimulacao = {
   possuiCnh: string;
   autorizado: boolean;
   site: string;
+  /** Cupom de indicação (opcional). Fica fora da validação: o servidor confere, e ele nunca bloqueia o envio. */
+  cupom: string;
 };
 
 /* ------------------------------------------------------------------ Pedido de busca */
@@ -211,6 +213,8 @@ export type CamposPedido = {
   trocaAno: string;
   autorizado: boolean;
   site: string;
+  /** Cupom de indicação (opcional). Fica fora da validação: o servidor confere, e ele nunca bloqueia o envio. */
+  cupom: string;
 };
 
 /* ------------------------------------------------------------------ Venda seu carro */
@@ -269,6 +273,8 @@ export type CamposConsignacao = {
   whatsapp: string;
   autorizado: boolean;
   site: string;
+  /** Cupom de indicação (opcional). Fica fora da validação: o servidor confere, e ele nunca bloqueia o envio. */
+  cupom: string;
 };
 
 /* ------------------------------------------------------------------ Erros */

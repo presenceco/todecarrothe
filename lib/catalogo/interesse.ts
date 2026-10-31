@@ -9,11 +9,15 @@ export function urlVeiculo(slug: string) {
 }
 
 /**
- * "Tenho interesse": abre o WhatsApp da loja com a mensagem pronta (não grava nada no banco).
+ * Mensagem pronta do "Tenho interesse":
  * Olá! Tenho interesse no {Marca} {Modelo} {Versão} {ano fab./modelo} de R$ {preço} que vi no catálogo: {URL do veículo}
  */
-export function linkInteresse(v: VeiculoResumo) {
+export function mensagemInteresse(v: VeiculoResumo) {
   const nome = [v.marca, v.modelo, v.versao].filter(Boolean).join(" ");
-  const mensagem = `Olá! Tenho interesse no ${nome} ${anoFabModelo(v.anoFabricacao, v.anoModelo)} de R$ ${numeroPreco(v.preco)} que vi no catálogo: ${urlVeiculo(v.slug)}`;
-  return linkWhatsappLoja(mensagem);
+  return `Olá! Tenho interesse no ${nome} ${anoFabModelo(v.anoFabricacao, v.anoModelo)} de R$ ${numeroPreco(v.preco)} que vi no catálogo: ${urlVeiculo(v.slug)}`;
+}
+
+/** Link do "Tenho interesse", com o cupom de indicação no fim da mensagem, se houver. */
+export function linkInteresse(mensagem: string, cupom?: string) {
+  return linkWhatsappLoja(cupom ? `${mensagem} Cupom de indicação: ${cupom}` : mensagem);
 }

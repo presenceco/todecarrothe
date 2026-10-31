@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { fontVariables } from "./fonts";
+import { CapturaCupom } from "@/components/site/captura-cupom";
+import { Comemoracao } from "@/components/site/comemoracao";
 import { siteUrl } from "@/lib/env";
 import "./globals.css";
 
@@ -28,7 +30,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className={fontVariables}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Cupom de indicação: o link ?cupom= só vale no site (a captura ignora o painel). */}
+        <CapturaCupom />
+        <Comemoracao />
+      </body>
     </html>
   );
 }

@@ -3,18 +3,19 @@ import { notFound } from "next/navigation";
 import { AnoAtual } from "@/components/site/ano-atual";
 import { Logo, Simbolo } from "@/components/site/logo";
 import { EtiquetaBadge } from "@/components/ui/badges";
-import { ButtonAnchor, ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Price } from "@/components/ui/price";
 import { StickyFooter } from "@/components/ui/sticky-footer";
 import { obterVeiculo } from "@/lib/catalogo/consultas";
 import { hrefFiltros, FILTROS_VAZIOS } from "@/lib/catalogo/filtros";
-import { linkInteresse, urlVeiculo } from "@/lib/catalogo/interesse";
+import { mensagemInteresse, urlVeiculo } from "@/lib/catalogo/interesse";
 import { anoFabModelo, km } from "@/lib/formato";
 import { slugificar } from "@/lib/slug";
 import { ROTULO_CAMBIO, ROTULO_COMBUSTIVEL, SELOS, type VeiculoDetalhe } from "@/lib/tipos";
 import type { NomeIcone } from "@/lib/icones";
 import { BotaoCompartilhar, BotaoVoltar } from "./acoes-barra";
+import { BotaoInteresse } from "./botao-interesse";
 import { Galeria } from "./galeria";
 import { Opcionais } from "./opcionais";
 
@@ -31,7 +32,7 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
   const nome = [v.marca, v.modelo, v.versao].filter(Boolean).join(" ");
   const meta = [v.versao, anoFabModelo(v.anoFabricacao, v.anoModelo), km(v.km)].filter(Boolean).join(" · ");
   const simular = `/simular/${v.slug}`;
-  const interesse = linkInteresse(v);
+  const interesse = mensagemInteresse(v);
 
   return (
     <>
@@ -84,10 +85,10 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
               <Icon name="calculate" size={20} />
               Simular financiamento
             </ButtonLink>
-            <ButtonAnchor href={interesse} variant="whatsapp-outline" size="custom" className="h-56 gap-8 rounded-14 text-16 font-bold">
+            <BotaoInteresse slug={v.slug} mensagem={interesse} size="custom" className="h-56 gap-8 rounded-14 text-16 font-bold">
               <Icon name="chat" size={20} fill />
               Tenho interesse
-            </ButtonAnchor>
+            </BotaoInteresse>
           </div>
 
           {v.selos.length + v.selosExtras.length > 0 && (
@@ -109,10 +110,10 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
       {/* Rodapé fixo do mobile (03) */}
       <div className="h-24 lg:hidden" />
       <StickyFooter shadow className="flex gap-8 lg:hidden">
-        <ButtonAnchor href={interesse} variant="whatsapp-outline" size="lg-15" className="box-border gap-6 px-14">
+        <BotaoInteresse slug={v.slug} mensagem={interesse} size="lg-15" className="box-border gap-6 px-14">
           <Icon name="chat" size={20} fill />
           Tenho interesse
-        </ButtonAnchor>
+        </BotaoInteresse>
         {/*
           Respiro lateral do texto: 12px a partir de 403px; entre 388 e 402px (inclui 390) o texto vai a 14px com 10px
           de respiro para caber ao lado de "Tenho interesse"; abaixo de 388px o botão diz só "Simular".

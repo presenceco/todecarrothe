@@ -2,9 +2,11 @@
 
 import { OptionGroup } from "@/components/ui/option-group";
 import { enviarSimulacao } from "@/lib/formularios/acoes";
+import { cupomParaEnvio } from "@/lib/formularios/cupom-navegador";
 import { errosPorCampo, esquemaSimulacao, type CamposSimulacao } from "@/lib/formularios/esquemas";
 import { TEXTO_CONSENTIMENTO } from "@/lib/consentimento";
 import { mascaraAno, mascaraCpf, mascaraData, mascaraMoeda, mascaraWhatsapp } from "@/lib/mascaras";
+import { CampoCupom } from "./campo-cupom";
 import { AvisoGeral, Autorizacao, CampoIsca, CampoMascara, CartaoForm, ErroGrupo, RodapeEnvio } from "./partes";
 import { useFormulario } from "./use-formulario";
 
@@ -24,6 +26,7 @@ const VAZIO: CamposSimulacao = {
   possuiCnh: "",
   autorizado: false,
   site: "",
+  cupom: "",
 };
 
 const SIM_NAO = [
@@ -62,7 +65,7 @@ export function FormSimulacao({ veiculo }: { veiculo: { slug: string; preco: num
     e.preventDefault();
     if (!f.conferir()) return;
     f.iniciar(async () => {
-      f.receber(await enviarSimulacao({ veiculo: veiculo?.slug ?? null, campos: c, iniciadoEm: f.iniciadoEm.current }));
+      f.receber(await enviarSimulacao({ veiculo: veiculo?.slug ?? null, campos: { ...c, cupom: cupomParaEnvio(c.cupom) }, iniciadoEm: f.iniciadoEm.current }));
     });
   }
 
@@ -177,6 +180,13 @@ export function FormSimulacao({ veiculo }: { veiculo: { slug: string; preco: num
             <ErroGrupo id="campo-possuiCnh-erro" mensagem={erros.possuiCnh} />
           </div>
         </div>
+      </CartaoForm>
+
+      {/* Cupom de indicação (opcional; fora das telas 04/23). */}
+      <CartaoForm>
+        <div data-novo="">
+        <CampoCupom valor={c.cupom} onValor={(v) => definir("cupom", v)} />
+      </div>
       </CartaoForm>
 
       <Autorizacao texto={TEXTO_CONSENTIMENTO.simulacao} marcado={c.autorizado} onMarcar={(v) => definir("autorizado", v)} erro={erros.autorizado} />

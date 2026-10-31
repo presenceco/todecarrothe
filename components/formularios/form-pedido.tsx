@@ -6,10 +6,12 @@ import { OptionGroup } from "@/components/ui/option-group";
 import { SelectField, type OpcaoSelect } from "@/components/ui/select-field";
 import { Switch } from "@/components/ui/switch";
 import { confirmarFotosPedido, enviarPedido } from "@/lib/formularios/acoes";
+import { cupomParaEnvio } from "@/lib/formularios/cupom-navegador";
 import { errosPorCampo, esquemaPedido, FAIXAS_PRECO, PRAZOS_PEDIDO, type CamposPedido } from "@/lib/formularios/esquemas";
 import { TEXTO_CONSENTIMENTO } from "@/lib/consentimento";
 import { mascaraAno, mascaraMoeda, mascaraWhatsapp } from "@/lib/mascaras";
 import { clienteNavegador } from "@/lib/supabase/navegador";
+import { CampoCupom } from "./campo-cupom";
 import { FotosCliente, prepararFoto, type FotoLocal } from "./fotos-cliente";
 import { AvisoGeral, Autorizacao, CampoIsca, CampoMascara, ErroGrupo, RodapeEnvio } from "./partes";
 import { useFormulario } from "./use-formulario";
@@ -29,6 +31,7 @@ const VAZIO: CamposPedido = {
   trocaAno: "",
   autorizado: false,
   site: "",
+  cupom: "",
 };
 
 const PRAZOS = PRAZOS_PEDIDO.map((m) => ({ value: String(m), label: `${m}x` }));
@@ -64,7 +67,7 @@ export function FormPedido({ anos }: { anos: readonly OpcaoSelect[] }) {
       // Sem troca, as fotos escolhidas antes de desligar o interruptor não vão.
       const arquivos = c.temTroca ? await Promise.all(fotos.map((foto) => prepararFoto(foto.arquivo))) : [];
       const resposta = await enviarPedido({
-        campos: c,
+        campos: { ...c, cupom: cupomParaEnvio(c.cupom) },
         fotos: arquivos.map((a) => ({ tipo: a.type, tamanho: a.size })),
         iniciadoEm: f.iniciadoEm.current,
       });
@@ -212,6 +215,11 @@ export function FormPedido({ anos }: { anos: readonly OpcaoSelect[] }) {
               />
             </div>
           )}
+        </div>
+
+        {/* Cupom de indicação (opcional; fora das telas 07/24). */}
+        <div data-novo="" className="border-t border-gray-100 pt-12 lg:pt-16">
+          <CampoCupom valor={c.cupom} onValor={(v) => definir("cupom", v)} />
         </div>
       </section>
 

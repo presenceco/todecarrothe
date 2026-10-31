@@ -17,6 +17,7 @@ import {
   type CamposSimulacao,
   type ErrosCampos,
 } from "./esquemas";
+import { idDoCupomAtivo } from "./cupom-servidor";
 import { assinar, assinaturaValida, dentroDoLimite, MENSAGEM_FALHA, MENSAGEM_LIMITE, pareceRobo } from "./protecao";
 
 /**
@@ -64,6 +65,8 @@ export async function enviarSimulacao(entrada: { veiculo: string | null; campos:
     troca_modelo: d.temTroca ? d.trocaModelo!.trim() : null,
     troca_ano: d.temTroca ? d.trocaAno : null,
     possui_cnh: d.possuiCnh,
+    // Cupom válido e ativo: grava; inválido: null, e o envio segue normalmente.
+    cupom_id: await idDoCupomAtivo(entrada.campos.cupom),
     consentimento_em: new Date().toISOString(),
     consentimento_versao: CONSENTIMENTO_VERSAO,
   });
@@ -154,6 +157,8 @@ export async function enviarPedido(entrada: {
       tem_troca: d.temTroca,
       troca_modelo: d.temTroca ? d.trocaModelo!.trim() : null,
       troca_ano: d.temTroca ? d.trocaAno : null,
+      // Cupom válido e ativo: grava; inválido: null, e o envio segue normalmente.
+      cupom_id: await idDoCupomAtivo(entrada.campos.cupom),
       consentimento_em: new Date().toISOString(),
       consentimento_versao: CONSENTIMENTO_VERSAO,
     })
@@ -218,6 +223,8 @@ export async function enviarConsignacao(entrada: {
       detalhes: d.detalhes,
       nome: d.nome,
       whatsapp: d.whatsapp,
+      // Cupom válido e ativo: grava; inválido: null, e o envio segue normalmente.
+      cupom_id: await idDoCupomAtivo(entrada.campos.cupom),
       consentimento_em: new Date().toISOString(),
       consentimento_versao: CONSENTIMENTO_VERSAO,
     })

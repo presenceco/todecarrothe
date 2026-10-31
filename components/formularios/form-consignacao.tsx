@@ -7,11 +7,13 @@ import { OptionGroup } from "@/components/ui/option-group";
 import { SelectField } from "@/components/ui/select-field";
 import { TEXTO_CONSENTIMENTO } from "@/lib/consentimento";
 import { confirmarFotosConsignacao, enviarConsignacao } from "@/lib/formularios/acoes";
+import { cupomParaEnvio } from "@/lib/formularios/cupom-navegador";
 import { errosPorCampo, esquemaConsignacao, FORMAS_VENDA, type CamposConsignacao } from "@/lib/formularios/esquemas";
 import { CACHE_FOTOS_VEICULO } from "@/lib/fotos-veiculo";
 import { MARCAS } from "@/lib/marcas";
 import { mascaraAnoFabModelo, mascaraKm, mascaraMoeda, mascaraWhatsapp } from "@/lib/mascaras";
 import { clienteNavegador } from "@/lib/supabase/navegador";
+import { CampoCupom } from "./campo-cupom";
 import { FotosCliente, prepararFoto, type FotoLocal } from "./fotos-cliente";
 import { AvisoGeral, Autorizacao, CampoIsca, CampoMascara, CartaoForm, ErroGrupo, RodapeEnvio } from "./partes";
 import { useFormulario } from "./use-formulario";
@@ -32,6 +34,7 @@ const VAZIO: CamposConsignacao = {
   whatsapp: "",
   autorizado: false,
   site: "",
+  cupom: "",
 };
 
 const OPCOES_MARCA = [...MARCAS].sort((a, b) => a.localeCompare(b, "pt-BR")).map((m) => ({ value: m, label: m }));
@@ -76,7 +79,7 @@ export function FormConsignacao() {
     f.iniciar(async () => {
       const arquivos = await Promise.all(fotos.map((foto) => prepararFoto(foto.arquivo)));
       const resposta = await enviarConsignacao({
-        campos: c,
+        campos: { ...c, cupom: cupomParaEnvio(c.cupom) },
         fotos: arquivos.map((a) => ({ tipo: a.type, tamanho: a.size })),
         iniciadoEm: f.iniciadoEm.current,
       });
@@ -213,6 +216,13 @@ export function FormConsignacao() {
           <CampoMascara {...campo("nome")} label="Nome" placeholder="Seu nome" autoComplete="name" autoCapitalize="words" />
           <CampoMascara {...campo("whatsapp")} label="WhatsApp" placeholder="(86) 9 0000-0000" type="tel" inputMode="tel" autoComplete="tel-national" mascara={mascaraWhatsapp} />
         </div>
+      </CartaoForm>
+
+      {/* Cupom de indicação (opcional; fora das telas 33/37). */}
+      <CartaoForm>
+        <div data-novo="">
+        <CampoCupom valor={c.cupom} onValor={(v) => definir("cupom", v)} />
+      </div>
       </CartaoForm>
 
       <Autorizacao texto={TEXTO_CONSENTIMENTO.consignacao} marcado={c.autorizado} onMarcar={(v) => definir("autorizado", v)} erro={erros.autorizado} />
