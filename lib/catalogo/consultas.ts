@@ -92,6 +92,15 @@ export async function listarCatalogo(): Promise<VeiculoCatalogo[]> {
   return data.map(paraCatalogo);
 }
 
+/**
+ * Slugs que as páginas de carro geram no build. O Next exige pelo menos um: com o catálogo vazio, vai um slug
+ * que não existe e cai no "não encontrado". Carro publicado depois é gerado na 1ª visita.
+ */
+export async function slugsDoBuild() {
+  const veiculos = await listarCatalogo();
+  return veiculos.length ? veiculos.map((v) => ({ slug: v.slug })) : [{ slug: "sem-veiculos" }];
+}
+
 /** Um veículo do catálogo pelo slug, ou null se não existir ou não estiver visível. */
 export async function obterVeiculo(slug: string): Promise<VeiculoDetalhe | null> {
   "use cache";

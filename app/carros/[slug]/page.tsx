@@ -3,14 +3,13 @@ import { Suspense } from "react";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { DetalheVeiculo } from "@/components/veiculo/detalhe";
-import { listarCatalogo, obterVeiculo } from "@/lib/catalogo/consultas";
+import { obterVeiculo, slugsDoBuild } from "@/lib/catalogo/consultas";
 import { anoFabModelo, km, numeroPreco } from "@/lib/formato";
 import { ROTULO_CAMBIO, ROTULO_COMBUSTIVEL } from "@/lib/tipos";
 
 /** Todos os veículos do catálogo saem prontos do build; um carro publicado depois é gerado na 1ª visita. */
-export async function generateStaticParams() {
-  const veiculos = await listarCatalogo();
-  return veiculos.map((v) => ({ slug: v.slug }));
+export function generateStaticParams() {
+  return slugsDoBuild();
 }
 
 export async function generateMetadata({ params }: PageProps<"/carros/[slug]">): Promise<Metadata> {

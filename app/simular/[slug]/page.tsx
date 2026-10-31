@@ -3,11 +3,10 @@ import { Suspense } from "react";
 import { SimularVeiculo } from "@/components/formularios/simular-veiculo";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
-import { listarCatalogo, obterVeiculo } from "@/lib/catalogo/consultas";
+import { obterVeiculo, slugsDoBuild } from "@/lib/catalogo/consultas";
 
-export async function generateStaticParams() {
-  const veiculos = await listarCatalogo();
-  return veiculos.map((v) => ({ slug: v.slug }));
+export function generateStaticParams() {
+  return slugsDoBuild();
 }
 
 export async function generateMetadata({ params }: PageProps<"/simular/[slug]">): Promise<Metadata> {
