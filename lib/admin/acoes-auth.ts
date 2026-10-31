@@ -7,13 +7,14 @@ import { dentroDoLimite, type Limite } from "@/lib/formularios/protecao";
 import { resumoErro } from "@/lib/log";
 import { clienteServidor } from "@/lib/supabase/servidor";
 import { COOKIE_SESSAO_CURTA } from "./cookies";
-import { emailDoAdmin, emailDoPainel } from "./entrada";
+import { emailDoAdmin } from "./entrada";
 
 export type EstadoEntrar = { erro?: string };
 export type EstadoEsqueci = { enviado?: boolean };
 export type EstadoRedefinir = { erro?: string };
 
 const ERRO_CREDENCIAIS = "Senha incorreta.";
+const ERRO_SEM_ACESSO = "Esta conta não tem acesso ao painel.";
 const ERRO_LIMITE = "Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.";
 const ERRO_INDISPONIVEL = "Não foi possível entrar agora. Tente de novo em alguns minutos.";
 
@@ -29,8 +30,8 @@ function destinoSeguro(volta: FormDataEntryValue | null) {
 }
 
 /**
- * Entrar no painel (11/26): só a senha, em qualquer ambiente. O e-mail fica no servidor: ADMIN_EMAIL ou, sem a
- * variável, o do admin no Supabase Auth. Só o usuário com papel admin passa; qualquer outro é desconectado.
+ * Entrar no painel (11/26): só a senha, em qualquer ambiente. O e-mail fica no servidor: o do admin no Supabase
+ * Auth. Só o usuário com papel admin passa; qualquer outro é desconectado.
  */
 export async function entrar(_anterior: EstadoEntrar, dados: FormData): Promise<EstadoEntrar> {
   const senha = String(dados.get("senha") ?? "");
@@ -40,7 +41,7 @@ export async function entrar(_anterior: EstadoEntrar, dados: FormData): Promise<
   let email: string | null;
   try {
     if (!(await dentroDoLimite("login", LIMITE_LOGIN))) return { erro: ERRO_LIMITE };
-    email = emailDoPainel() ?? (await emailDoAdmin());
+    email = await emailDoAdmin();
   } catch (e) {
     console.error("entrar", resumoErro(e));
     return { erro: ERRO_INDISPONIVEL };
@@ -60,7 +61,7 @@ export async function entrar(_anterior: EstadoEntrar, dados: FormData): Promise<
   }
   if (data.user?.app_metadata?.role !== "admin") {
     await supabase.auth.signOut();
-    return { erro: ERRO_CREDENCIAIS };
+    return { erro: ERRO_SEM_ACESSO };
   }
   redirect(destinoSeguro(dados.get("volta")));
 }

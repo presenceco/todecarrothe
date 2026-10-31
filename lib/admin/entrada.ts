@@ -3,10 +3,10 @@ import { resumoErro } from "@/lib/log";
 import { clienteServico } from "@/lib/supabase/servico";
 
 /**
- * E-mail do painel em ADMIN_EMAIL (opcional). Nunca vai para o navegador: a entrada pede só a senha e o e-mail
- * fica no servidor. Sem a variável, o e-mail vem do Supabase Auth (`emailDoAdmin`).
+ * E-mail do painel em ADMIN_EMAIL (opcional): reserva de `emailDoAdmin`, se a busca no Supabase Auth falhar, e
+ * desempate entre admins. Nunca vai para o navegador.
  */
-export function emailDoPainel() {
+function emailDoPainel() {
   return process.env.ADMIN_EMAIL?.trim().toLowerCase() || null;
 }
 
