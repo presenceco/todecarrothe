@@ -7,6 +7,7 @@ import { errosPorCampo, type ErrosCampos } from "@/lib/formularios/esquemas";
 import { BUCKET_OCULTO, BUCKET_PUBLICO, bucketDoVeiculo } from "@/lib/fotos-veiculo";
 import { resumoErro } from "@/lib/log";
 import { slugLivre, slugVeiculo } from "@/lib/slug";
+import { REGEX_COR } from "@/lib/status";
 import { esquemaVeiculo, MAX_FOTOS_VEICULO, type CamposVeiculo } from "./esquema-veiculo";
 import { arquivosDoVeiculo, desfazerMovimento, moverFotos } from "./fotos-veiculo";
 import { exigirAdmin } from "./sessao";
@@ -178,6 +179,41 @@ export async function criarOpcional(nome: string) {
 /** "+ Criar etiqueta": etiqueta escrita pelo admin para o cartão do catálogo (curta, cabe sobre a foto). */
 export async function criarEtiqueta(nome: string) {
   return criarItem("etiquetas_personalizadas", nome, 20);
+}
+
+/**
+ * Cor de fundo de uma etiqueta escrita pelo admin (null: a branca padrão). Fica salva na hora, como a criação
+ * da etiqueta, e vale para todos os carros com ela. `atualizarSite`: renova o catálogo já. No cadastro de carro
+ * novo vai false, porque renovar recarrega a página e o formulário novo voltaria vazio; ali o catálogo é
+ * renovado quando o carro é salvo.
+ */
+export async function definirCorEtiqueta(id: string, cor: string | null, atualizarSite: boolean): Promise<{ ok: true } | { ok: false; erro: string }> {
+  if (!UUID.test(id) || (cor !== null && !REGEX_COR.test(cor))) return { ok: false, erro: "Cor inválida." };
+  const { supabase } = await exigirAdmin();
+  const { error } = await supabase.from("etiquetas_personalizadas").update({ cor }).eq("id", id);
+  if (error) {
+    console.error("definirCorEtiqueta", resumoErro(error));
+    return { ok: false, erro: "Não foi possível salvar a cor. Tente de novo." };
+  }
+  if (atualizarSite) updateTag(TAG_VEICULOS);
+  return { ok: true };
+}
+
+/**
+ * Exclui uma etiqueta escrita pelo admin. Os carros que a usavam ficam sem etiqueta. `atualizarSite`: como em
+ * definirCorEtiqueta (false no cadastro de carro novo).
+ */
+export async function excluirEtiqueta(id: string, atualizarSite: boolean): Promise<{ ok: true } | { ok: false; erro: string }> {
+  if (!UUID.test(id)) return { ok: false, erro: "Pedido inválido." };
+  const { supabase } = await exigirAdmin();
+  const { error: erroCarros } = await supabase.from("veiculos").update({ etiqueta: "nenhuma", etiqueta_personalizada_id: null }).eq("etiqueta_personalizada_id", id);
+  const { error } = erroCarros ? { error: erroCarros } : await supabase.from("etiquetas_personalizadas").delete().eq("id", id);
+  if (error) {
+    console.error("excluirEtiqueta", resumoErro(error));
+    return { ok: false, erro: "Não foi possível excluir. Tente de novo." };
+  }
+  if (atualizarSite) updateTag(TAG_VEICULOS);
+  return { ok: true };
 }
 
 /** "+ Adicionar selo": selo verificado escrito pelo admin para a página do veículo. */

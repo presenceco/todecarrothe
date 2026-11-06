@@ -22,6 +22,8 @@ export type VeiculoResumo = {
   etiqueta: Etiqueta;
   /** Texto da etiqueta personalizada (escrita pelo admin). */
   etiquetaTexto: string | null;
+  /** Cor de fundo da etiqueta personalizada (#rrggbb), ou null para a branca padrão. */
+  etiquetaCor: string | null;
   totalFotos: number;
   capa: Foto | null;
 };

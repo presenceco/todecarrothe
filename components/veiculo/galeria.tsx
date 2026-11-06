@@ -18,11 +18,13 @@ export function Galeria({
   fotos,
   etiqueta,
   etiquetaTexto,
+  etiquetaCor,
   nome,
 }: {
   fotos: readonly Foto[];
   etiqueta: Etiqueta;
   etiquetaTexto: string | null;
+  etiquetaCor: string | null;
   nome: string;
 }) {
   const trilha = useRef<HTMLDivElement>(null);
@@ -109,7 +111,7 @@ export function Galeria({
           ))}
         </div>
         {contador}
-        <EtiquetaBadge etiqueta={etiqueta} texto={etiquetaTexto} className="absolute top-12 left-12 lg:hidden" />
+        <EtiquetaBadge etiqueta={etiqueta} texto={etiquetaTexto} cor={etiquetaCor} className="absolute top-12 left-12 lg:hidden" />
         {seta("anterior")}
         {seta("proxima")}
       </div>

@@ -14,7 +14,7 @@ import type { Selo, VeiculoCatalogo, VeiculoDetalhe } from "@/lib/tipos";
 export const TAG_VEICULOS = "veiculos";
 
 const CAMPOS =
-  "id, slug, marca, modelo, versao, ano_fabricacao, ano_modelo, km, cambio, cor, combustivel, tipo, preco, etiqueta, publicado_em, etiquetas_personalizadas (nome)";
+  "id, slug, marca, modelo, versao, ano_fabricacao, ano_modelo, km, cambio, cor, combustivel, tipo, preco, etiqueta, publicado_em, etiquetas_personalizadas (nome, cor)";
 
 type LinhaFoto = { path: string; ordem: number };
 
@@ -48,7 +48,7 @@ function paraCatalogo(v: {
   preco: number;
   etiqueta: string;
   publicado_em: string | null;
-  etiquetas_personalizadas: { nome: string } | null;
+  etiquetas_personalizadas: { nome: string; cor: string | null } | null;
   veiculo_fotos: LinhaFoto[];
 }): VeiculoCatalogo {
   const nome = nomeCompleto(v);
@@ -70,6 +70,7 @@ function paraCatalogo(v: {
     // Personalizada cuja etiqueta sumiu da lista: fica sem etiqueta.
     etiqueta: v.etiqueta === "personalizada" && !etiquetaTexto ? "nenhuma" : (v.etiqueta as VeiculoCatalogo["etiqueta"]),
     etiquetaTexto,
+    etiquetaCor: etiquetaTexto ? (v.etiquetas_personalizadas?.cor ?? null) : null,
     publicadoEm: v.publicado_em ? Date.parse(v.publicado_em) : 0,
     totalFotos: fotos.length,
     capa: fotos[0] ?? null,

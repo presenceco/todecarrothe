@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { CLASSES_ETIQUETA_PERSONALIZADA, CLASSES_TOM, ETIQUETAS, type Etiqueta, type Tom } from "@/lib/status";
+import { CLASSES_ETIQUETA_PERSONALIZADA, CLASSES_TOM, corDoTexto, ETIQUETAS, type Etiqueta, type Tom } from "@/lib/status";
 import { Icon } from "./icon";
 
 const PADDING_STATUS = {
@@ -71,25 +71,30 @@ export function CountBadge({ total, rotulo, size = "md", className }: { total: n
 export function EtiquetaBadge({
   etiqueta,
   texto,
+  cor,
   estilo = "sombra",
   className,
 }: {
   etiqueta: Etiqueta;
   /** Texto da etiqueta personalizada. */
   texto?: string | null;
+  /** Cor de fundo da etiqueta personalizada (#rrggbb); sem cor, a branca padrão. */
+  cor?: string | null;
   estilo?: "sombra" | "contorno";
   className?: string;
 }) {
   if (etiqueta === "nenhuma" || (etiqueta === "personalizada" && !texto)) return null;
   const { rotulo, classes } = etiqueta === "personalizada" ? { rotulo: texto!, classes: CLASSES_ETIQUETA_PERSONALIZADA } : ETIQUETAS[etiqueta];
+  const colorida = etiqueta === "personalizada" && !!cor;
   return (
     <span
       className={cn(
         "rounded-8 px-11 py-7 text-14 leading-none font-bold",
         estilo === "sombra" ? "shadow-badge" : "border border-gray-190",
-        classes,
+        !colorida && classes,
         className,
       )}
+      style={colorida ? { backgroundColor: cor, color: corDoTexto(cor) } : undefined}
     >
       {rotulo}
     </span>

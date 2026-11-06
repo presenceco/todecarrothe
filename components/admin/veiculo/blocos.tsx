@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { ConfirmarPerigo } from "@/components/admin/detalhe/confirmar-perigo";
 import { EtiquetaBadge, StatusBadge } from "@/components/ui/badges";
 import { Icon } from "@/components/ui/icon";
-import { criarOpcional, criarSelo, type RespostaCriarItem } from "@/lib/admin/acoes-veiculo";
+import { criarOpcional, criarSelo, definirCorEtiqueta, excluirEtiqueta, type RespostaCriarItem } from "@/lib/admin/acoes-veiculo";
 import type { Opcional } from "@/lib/admin/veiculo";
 import { cn } from "@/lib/cn";
-import { STATUS_VEICULO, type Etiqueta, type StatusVeiculo } from "@/lib/status";
+import { CORES_ETIQUETA, STATUS_VEICULO, type Etiqueta, type StatusVeiculo } from "@/lib/status";
 import { SELOS } from "@/lib/tipos";
 
 /** Cartão do cadastro: mobile 18px 16px e título 700 17px (15); desktop 24px e título 700 18px (28). */
@@ -175,6 +176,7 @@ export function NovoItem({
   criar,
   onCriado,
   onCancelar,
+  previa,
   className,
 }: {
   rotulo: string;
@@ -183,6 +185,8 @@ export function NovoItem({
   criar: (nome: string) => Promise<RespostaCriarItem>;
   onCriado: (item: Opcional) => void;
   onCancelar: () => void;
+  /** Prévia do item enquanto o nome é digitado (a etiqueta sobre a foto). */
+  previa?: (nome: string) => React.ReactNode;
   className?: string;
 }) {
   const [nome, setNome] = useState("");
@@ -239,6 +243,21 @@ export function NovoItem({
         </button>
       </div>
       {erro && <p className="text-14 text-danger">{erro}</p>}
+      {previa && nome.trim() && previa(nome.replace(/\s+/g, " ").trim())}
+    </div>
+  );
+}
+
+/** Prévia da etiqueta escrita no painel sobre a capa do carro, como no cartão do catálogo. */
+export function PreviaEtiqueta({ texto, cor, capa }: { texto: string; cor: string | null; capa: string | null }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-14 text-gray-500">Prévia</p>
+      <div className="relative h-88 overflow-hidden rounded-12 bg-hatch">
+        {/* eslint-disable-next-line @next/next/no-img-element -- prévia ao vivo, a foto pode ainda não ter passado pelo otimizador */}
+        {capa && <img src={capa} alt="" className="absolute inset-0 size-full object-cover" />}
+        <EtiquetaBadge etiqueta="personalizada" texto={texto} cor={cor} className="absolute top-12 left-12" />
+      </div>
     </div>
   );
 }
@@ -351,11 +370,126 @@ export function Opcionais({ lista, onLista, valor, onValor }: { lista: Opcional[
   );
 }
 
+/**
+ * Cor da etiqueta escrita no painel: as cores prontas e "Outra cor" (seletor do sistema). Salva na hora e vale
+ * para todos os carros com essa etiqueta. No seletor do sistema, salva quando o arrasto para. `novo`: cadastro
+ * de carro ainda não salvo; o site recebe a cor quando o carro for salvo. Embaixo, "Excluir etiqueta".
+ */
+export function CorEtiqueta({
+  id,
+  nome,
+  cor,
+  capa,
+  novo,
+  onCor,
+  onExcluida,
+}: {
+  id: string;
+  nome: string;
+  cor: string | null;
+  /** Capa do carro, para a prévia (sem foto, o fundo listrado). */
+  capa: string | null;
+  novo: boolean;
+  onCor: (cor: string | null) => void;
+  onExcluida: () => void;
+}) {
+  const [estado, setEstado] = useState<{ tom: "ok" | "erro"; texto: string }>();
+  const [confirmar, setConfirmar] = useState(false);
+  const [, iniciar] = useTransition();
+  const espera = useRef<number>(undefined);
+  const salvaComo = useRef(cor);
+  const outra = cor !== null && !CORES_ETIQUETA.some((c) => c.cor === cor);
+
+  function salvar(nova: string | null) {
+    window.clearTimeout(espera.current);
+    setEstado(undefined);
+    iniciar(async () => {
+      const r = await definirCorEtiqueta(id, nova, !novo);
+      if (r.ok) {
+        salvaComo.current = nova;
+        setEstado({ tom: "ok", texto: "Cor salva" });
+      } else {
+        onCor(salvaComo.current);
+        setEstado({ tom: "erro", texto: r.erro });
+      }
+    });
+  }
+  function escolher(nova: string | null, depois = 0) {
+    onCor(nova);
+    window.clearTimeout(espera.current);
+    if (depois) espera.current = window.setTimeout(() => salvar(nova), depois);
+    else salvar(nova);
+  }
+
+  const bolinha = "size-30 rounded-pill border border-black/15";
+  const marcada = "ring-2 ring-brand ring-offset-2";
+  return (
+    <div className="mt-8 flex flex-col gap-4">
+      <p id={`cor-etiqueta-${id}`} className="text-14 font-semibold">
+        Cor da etiqueta
+      </p>
+      <PreviaEtiqueta texto={nome} cor={cor} capa={capa} />
+      <div role="group" aria-labelledby={`cor-etiqueta-${id}`} className="-ml-7 flex flex-wrap">
+        {CORES_ETIQUETA.map((c) => (
+          <button
+            key={c.nome}
+            type="button"
+            aria-label={c.nome}
+            aria-pressed={cor === c.cor}
+            onClick={() => escolher(c.cor)}
+            className="flex size-44 items-center justify-center rounded-pill"
+          >
+            <span className={cn(bolinha, cor === c.cor && marcada)} style={{ backgroundColor: c.cor ?? "#ffffff" }} />
+          </button>
+        ))}
+        <label className="relative flex size-44 cursor-pointer items-center justify-center rounded-pill">
+          <span
+            className={cn(bolinha, outra ? marcada : "bg-[conic-gradient(#d92d20,#facc15,#15803d,#0045aa,#7c3aed,#d92d20)]")}
+            style={outra ? { backgroundColor: cor } : undefined}
+          />
+          <input
+            type="color"
+            aria-label="Outra cor"
+            value={cor ?? "#ffffff"}
+            onChange={(e) => escolher(e.target.value.toLowerCase(), 700)}
+            className="absolute inset-0 cursor-pointer opacity-0"
+          />
+        </label>
+      </div>
+      <p className="text-14 leading-140 text-gray-500">
+        Vale para todos os carros com esta etiqueta.{novo && " No site, aparece quando você salvar este carro."}
+        {estado && (
+          <span role={estado.tom === "erro" ? "alert" : "status"} className={cn("ml-4 font-medium", estado.tom === "erro" ? "text-danger" : "text-success")}>
+            {estado.texto}
+          </span>
+        )}
+      </p>
+      <button
+        type="button"
+        onClick={() => setConfirmar(true)}
+        className="flex h-44 items-center gap-6 self-start text-14 font-semibold text-danger hover:underline lg:h-32"
+      >
+        <Icon name="delete" size={18} />
+        Excluir etiqueta
+      </button>
+      <ConfirmarPerigo
+        aberto={confirmar}
+        onFechar={() => setConfirmar(false)}
+        titulo={`Excluir a etiqueta ${nome}?`}
+        texto="Ela sai deste e de todos os carros que a usam, que ficam sem etiqueta. Não dá para desfazer."
+        acao={() => excluirEtiqueta(id, !novo)}
+        depois={onExcluida}
+      />
+    </div>
+  );
+}
+
 /** Prévia do cartão no catálogo (28): foto 4:3 com a etiqueta, marca, modelo, versão · ano · km e preço. */
 export function Previa({
   capa,
   etiqueta,
   etiquetaTexto,
+  etiquetaCor,
   marca,
   modelo,
   linha,
@@ -364,6 +498,7 @@ export function Previa({
   capa: string | null;
   etiqueta: Etiqueta;
   etiquetaTexto: string | null;
+  etiquetaCor: string | null;
   marca: string;
   modelo: string;
   linha: string;
@@ -374,7 +509,7 @@ export function Previa({
       <div className="relative aspect-[4/3] bg-hatch">
         {/* eslint-disable-next-line @next/next/no-img-element -- prévia ao vivo, a foto pode ainda não ter passado pelo otimizador */}
         {capa && <img src={capa} alt="" className="absolute inset-0 size-full object-cover" />}
-        <EtiquetaBadge etiqueta={etiqueta} texto={etiquetaTexto} className="absolute top-10 left-10" />
+        <EtiquetaBadge etiqueta={etiqueta} texto={etiquetaTexto} cor={etiquetaCor} className="absolute top-10 left-10" />
       </div>
       <div className="p-14">
         <p className="truncate text-14 font-bold tracking-[0.08em] text-brand uppercase">{marca || "Marca"}</p>

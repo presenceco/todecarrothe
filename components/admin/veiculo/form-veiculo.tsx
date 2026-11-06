@@ -20,12 +20,12 @@ import {
   OPCOES_TIPO,
   type CamposVeiculo,
 } from "@/lib/admin/esquema-veiculo";
-import type { DadosFormVeiculo, Opcional } from "@/lib/admin/veiculo";
+import type { DadosFormVeiculo, EtiquetaPainel, Opcional } from "@/lib/admin/veiculo";
 import { cn } from "@/lib/cn";
 import { errosPorCampo, type ErrosCampos } from "@/lib/formularios/esquemas";
 import { mascaraAnoFabModelo, mascaraKmSufixo, mascaraReais } from "@/lib/mascaras";
 import type { Etiqueta } from "@/lib/status";
-import { Cartao, NovoItem, Opcionais, Previa, Selos, SeletorStatus } from "./blocos";
+import { Cartao, CorEtiqueta, NovoItem, Opcionais, Previa, PreviaEtiqueta, Selos, SeletorStatus } from "./blocos";
 import { FotosVeiculo, type FotoForm } from "./fotos-veiculo";
 
 /** Campos do desktop (28): 46px, raio 10, 400 15px, padding 12px (no mobile, os 52px dos formulários). */
@@ -48,7 +48,7 @@ export function FormVeiculo({
   dados: DadosFormVeiculo;
   opcionais: Opcional[];
   /** Etiquetas e selos escritos no painel (listas compartilhadas, como os opcionais). */
-  etiquetas: Opcional[];
+  etiquetas: EtiquetaPainel[];
   selos: Opcional[];
   modelos: Record<string, string[]>;
   anoAtual: number;
@@ -82,7 +82,16 @@ export function FormVeiculo({
     if (erros[chave]) setErros((e) => ({ ...e, [chave]: undefined }));
   }
 
+  /** Etiqueta excluída: sai da lista e deste carro. */
+  function etiquetaExcluida(id: string) {
+    setEtiquetas((lista) => lista.filter((e) => e.id !== id));
+    definir("etiqueta", "nenhuma");
+    // O banco já tirou a etiqueta dos carros: o último estado salvo também fica sem ela, para não contar como alteração.
+    setSalvoComo((s) => s.replace(`"etiqueta":"${id}"`, '"etiqueta":"nenhuma"'));
+  }
+
   const enviando = fotos.some((f) => f.enviando);
+  const capa = fotos.find((f) => !f.enviando)?.url ?? null;
 
   function salvar(publicar: boolean) {
     setGeral(undefined);
@@ -387,6 +396,17 @@ export function FormVeiculo({
                 className={SELECT_DESKTOP}
                 fieldClassName="mt-4 lg:mt-16"
               />
+              {etiquetaPersonalizada && !criandoEtiqueta && (
+                <CorEtiqueta
+                  id={etiquetaPersonalizada.id}
+                  nome={etiquetaPersonalizada.nome}
+                  cor={etiquetaPersonalizada.cor}
+                  capa={capa}
+                  novo={dados.novo}
+                  onCor={(cor) => setEtiquetas((lista) => lista.map((e) => (e.id === etiquetaPersonalizada.id ? { ...e, cor } : e)))}
+                  onExcluida={() => etiquetaExcluida(etiquetaPersonalizada.id)}
+                />
+              )}
               {/* "+ Criar etiqueta": etiqueta escrita pelo admin, disponível para todos os veículos, já escolhida neste. */}
               {criandoEtiqueta ? (
                 <NovoItem
@@ -395,11 +415,12 @@ export function FormVeiculo({
                   maximo={20}
                   criar={criarEtiqueta}
                   onCriado={(e) => {
-                    if (!etiquetas.some((x) => x.id === e.id)) setEtiquetas([...etiquetas, e]);
+                    if (!etiquetas.some((x) => x.id === e.id)) setEtiquetas([...etiquetas, { ...e, cor: null }]);
                     definir("etiqueta", e.id);
                     setCriandoEtiqueta(false);
                   }}
                   onCancelar={() => setCriandoEtiqueta(false)}
+                  previa={(texto) => <PreviaEtiqueta texto={texto} cor={null} capa={capa} />}
                   className="mt-8"
                 />
               ) : (
@@ -444,9 +465,10 @@ export function FormVeiculo({
 
             <Cartao titulo="Prévia no catálogo" className="hidden lg:flex [&>div:first-child]:lg:mb-14">
               <Previa
-                capa={fotos.find((f) => !f.enviando)?.url ?? null}
+                capa={capa}
                 etiqueta={etiquetaPersonalizada ? "personalizada" : (campos.etiqueta as Etiqueta)}
                 etiquetaTexto={etiquetaPersonalizada?.nome ?? null}
+                etiquetaCor={etiquetaPersonalizada?.cor ?? null}
                 marca={campos.marca}
                 modelo={campos.modelo}
                 linha={linhaPrevia}

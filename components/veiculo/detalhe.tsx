@@ -63,7 +63,7 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
 
       <div className="mx-auto max-w-page lg:grid lg:grid-cols-[minmax(0,1fr)_440px] lg:items-start lg:gap-x-40 lg:gap-y-24 lg:px-32 lg:pb-72 xl:px-64">
         <div className="lg:col-start-1">
-          <Galeria fotos={v.fotos} etiqueta={v.etiqueta} etiquetaTexto={v.etiquetaTexto} nome={nome} />
+          <Galeria fotos={v.fotos} etiqueta={v.etiqueta} etiquetaTexto={v.etiquetaTexto} etiquetaCor={v.etiquetaCor} nome={nome} />
         </div>
 
         <aside
@@ -71,7 +71,7 @@ export async function DetalheVeiculo({ params }: { params: Promise<{ slug: strin
           className="flex flex-col gap-20 px-16 pt-20 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:rounded-16 lg:bg-white lg:p-28 lg:shadow-float"
         >
           <div>
-            <EtiquetaBadge etiqueta={v.etiqueta} texto={v.etiquetaTexto} estilo="contorno" className="mb-14 hidden lg:inline-flex" />
+            <EtiquetaBadge etiqueta={v.etiqueta} texto={v.etiquetaTexto} cor={v.etiquetaCor} estilo="contorno" className="mb-14 hidden lg:inline-flex" />
             <p className="text-14 font-bold tracking-eyebrow text-brand uppercase">{v.marca}</p>
             <h1 className="mt-2 font-display text-34 leading-105 font-extrabold italic lg:text-44 lg:leading-102">{v.modelo}</h1>
             <p className="mt-4 text-16 text-gray-600 lg:text-18">{meta}</p>

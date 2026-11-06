@@ -218,16 +218,19 @@ export type Database = {
       }
       etiquetas_personalizadas: {
         Row: {
+          cor: string | null
           created_at: string
           id: string
           nome: string
         }
         Insert: {
+          cor?: string | null
           created_at?: string
           id?: string
           nome: string
         }
         Update: {
+          cor?: string | null
           created_at?: string
           id?: string
           nome?: string

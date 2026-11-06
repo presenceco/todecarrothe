@@ -143,10 +143,13 @@ export async function listarOpcionais(): Promise<Opcional[]> {
   return data ?? [];
 }
 
+/** Etiqueta escrita no painel, com a cor de fundo (#rrggbb; null: a branca padrão). */
+export type EtiquetaPainel = Opcional & { cor: string | null };
+
 /** Etiquetas escritas no painel, na ordem em que foram criadas. */
-export async function listarEtiquetas(): Promise<Opcional[]> {
+export async function listarEtiquetas(): Promise<EtiquetaPainel[]> {
   const { supabase } = await exigirAdmin();
-  const { data } = await supabase.from("etiquetas_personalizadas").select("id, nome").order("created_at");
+  const { data } = await supabase.from("etiquetas_personalizadas").select("id, nome, cor").order("created_at");
   return data ?? [];
 }
 
