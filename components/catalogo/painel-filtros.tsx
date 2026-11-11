@@ -17,6 +17,7 @@ import {
   type Filtros,
 } from "@/lib/catalogo/filtros";
 import { ROTULO_CAMBIO, ROTULO_COMBUSTIVEL, ROTULO_TIPO } from "@/lib/tipos";
+import { LogoMarca } from "./logo-marca";
 
 export type MarcaContada = { slug: string; nome: string; total: number };
 
@@ -75,7 +76,10 @@ export function PainelFiltros({ filtros, onChange, onPrecoCommit, marcas, anos, 
             checked={filtros.marcas.includes(m.slug)}
             onChange={() => onChange({ ...filtros, marcas: alternar(filtros.marcas, m.slug) })}
           >
-            {m.nome}
+            <span className="flex items-center gap-10">
+              <LogoMarca slug={m.slug} reservar />
+              {m.nome}
+            </span>
           </FilterCheckbox>
         ))}
       </div>

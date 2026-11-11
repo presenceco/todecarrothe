@@ -7,6 +7,7 @@ import { Simbolo } from "@/components/site/logo";
 import { cn } from "@/lib/cn";
 import { alternar, escreverFiltros, hrefFiltros, type ChipFiltro, type Filtros } from "@/lib/catalogo/filtros";
 import type { NomeIcone } from "@/lib/icones";
+import { LogoMarca } from "./logo-marca";
 import type { MarcaContada } from "./painel-filtros";
 
 /* ---------------------------------------------------------------- Hero */
@@ -105,6 +106,7 @@ export function ChipsMarca({ filtros, marcas }: { filtros: Filtros; marcas: read
             aria-current={ativa ? "true" : undefined}
             className={chipClasses({ selected: ativa })}
           >
+            <LogoMarca slug={m.slug} branca={ativa} className="mr-4" />
             {m.nome}
           </Link>
         );

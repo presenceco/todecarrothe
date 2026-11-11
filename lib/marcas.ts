@@ -38,6 +38,15 @@ export const MARCAS = [
   "Volvo",
 ] as const;
 
+/**
+ * Marcas com logo em public/marcas/<slug>.svg (copiadas do Simple Icons, na cor da marca), usadas nos filtros
+ * do catálogo. As demais aparecem só com o nome.
+ */
+export const LOGOS_MARCAS: ReadonlySet<string> = new Set([
+  "toyota", "jeep", "fiat", "volkswagen", "hyundai", "chevrolet", "honda", "renault", "audi", "bmw", "citroen",
+  "ford", "kia", "mini", "mitsubishi", "nissan", "peugeot", "porsche", "ram", "subaru", "suzuki", "volvo",
+]);
+
 const ORDEM = new Map(MARCAS.map((m, i) => [slugificar(m), i]));
 
 /** Ordena nomes de marca pela lista acima; marcas fora dela vão para o fim, em ordem alfabética. */
