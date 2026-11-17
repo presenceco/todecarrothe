@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BotaoWhatsapp, DetalheMobile, DetalhePainel, SecaoMobile, SecaoPainel, type ItemDetalhe } from "@/components/admin/detalhe/estrutura";
 import { LinkIndicacao } from "@/components/admin/cupons/indicacao";
-import { BotaoCopiar, ExcluirRegistro, StatusEscolha } from "@/components/admin/detalhe/interativos";
+import { Anotacoes, BotaoCopiar, ExcluirRegistro, StatusEscolha } from "@/components/admin/detalhe/interativos";
 import { PaginaCarregando } from "@/components/admin/estados";
 import { BASE_SIMULACOES, FotoSimulacao, ListaSimulacoes, OPCOES_STATUS_SIMULACAO, whatsappSimulacao } from "@/components/admin/simulacoes/lista-simulacoes";
 import { Icon } from "@/components/ui/icon";
@@ -16,6 +16,7 @@ import { apagamentoDadosSensiveis } from "@/lib/lgpd";
 export const metadata: Metadata = { title: "Simulação" };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PLACEHOLDER = "Escreva aqui o andamento da simulação…";
 
 /** Cartão do veículo da simulação (19 mobile; 32 desktop com ano · km e o preço à direita). */
 function VeiculoSimulacao({ s, variante }: { s: Simulacao; variante: "mobile" | "painel" }) {
@@ -121,6 +122,9 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
             <LinkIndicacao indicacao={s.indicacao} />
           </SecaoPainel>
         )}
+        <SecaoPainel titulo="Anotações da loja">
+          <Anotacoes lista="simulacoes" id={s.id} inicial={s.anotacoes} placeholder={PLACEHOLDER} variante="painel" />
+        </SecaoPainel>
         {s.consentimento && (
           <p className="flex items-center gap-8 text-14 font-medium text-success">
             <Icon name="check_circle" size={20} fill />
@@ -166,6 +170,9 @@ async function Detalhe({ params, searchParams }: { params: Promise<{ id: string 
             <LinkIndicacao indicacao={s.indicacao} />
           </SecaoMobile>
         )}
+        <SecaoMobile titulo="Anotações da loja" className="flex flex-col gap-10 [&>h2]:mb-0">
+          <Anotacoes lista="simulacoes" id={s.id} inicial={s.anotacoes} placeholder={PLACEHOLDER} variante="cartao" />
+        </SecaoMobile>
         {s.consentimento && (
           <p className="flex items-center gap-10 rounded-14 bg-success-bg p-14 text-14 leading-140 font-semibold text-success">
             <Icon name="check_circle" size={22} fill />

@@ -415,6 +415,7 @@ export type Database = {
       }
       simulacoes: {
         Row: {
+          anotacoes: string
           consentimento_em: string
           consentimento_versao: string
           cpf: string | null
@@ -441,6 +442,7 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          anotacoes?: string
           consentimento_em: string
           consentimento_versao: string
           cpf?: string | null
@@ -467,6 +469,7 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          anotacoes?: string
           consentimento_em?: string
           consentimento_versao?: string
           cpf?: string | null

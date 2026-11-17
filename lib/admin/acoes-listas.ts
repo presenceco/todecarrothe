@@ -9,7 +9,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const LISTAS = {
   pedidos: { tabela: "pedidos_busca", status: STATUS_PEDIDO, anotacoes: true },
-  simulacoes: { tabela: "simulacoes", status: STATUS_SIMULACAO, anotacoes: false },
+  simulacoes: { tabela: "simulacoes", status: STATUS_SIMULACAO, anotacoes: true },
   consignacoes: { tabela: "consignacoes", status: STATUS_CONSIGNACAO, anotacoes: true },
 } as const;
 
@@ -78,12 +78,12 @@ export async function excluirRegistro(lista: Lista, id: string): Promise<{ ok: t
   return { ok: true };
 }
 
-/** Anotações da loja (pedidos e consignações): salvas ao sair do campo. */
+/** Anotações da loja (pedidos, simulações e consignações): salvas ao sair do campo. */
 export async function salvarAnotacoes(lista: Lista, id: string, texto: string): Promise<{ ok: boolean }> {
   const def = LISTAS[lista];
   if (!def?.anotacoes || !UUID.test(id) || texto.length > 5000) return { ok: false };
   const { supabase } = await exigirAdmin();
-  const { error } = await supabase.from(def.tabela as "pedidos_busca" | "consignacoes").update({ anotacoes: texto }).eq("id", id);
+  const { error } = await supabase.from(def.tabela).update({ anotacoes: texto }).eq("id", id);
   if (error) console.error("salvarAnotacoes", lista, resumoErro(error));
   return { ok: !error };
 }

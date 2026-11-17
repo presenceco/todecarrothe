@@ -47,10 +47,12 @@ export type Simulacao = {
   indicacao: Indicacao | null;
   veiculo: VeiculoSimulacao | null;
   valorAproximado: number | null;
+  /** Anotações da loja (só a equipe vê). */
+  anotacoes: string;
 };
 
 const CAMPOS =
-  `id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, status, created_at, dados_sensiveis_apagados_em, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, status, publicado, veiculo_fotos (path, ordem)), ${CAMPOS_INDICACAO}`;
+  `id, nome, cpf, nascimento, whatsapp, renda, entrada, prazo_meses, parcela_desejada, tem_troca, troca_modelo, troca_ano, possui_cnh, consentimento_em, anotacoes, status, created_at, dados_sensiveis_apagados_em, veiculo_nome, veiculo_preco, valor_aproximado, veiculos (marca, modelo, versao, ano_fabricacao, ano_modelo, km, status, publicado, veiculo_fotos (path, ordem)), ${CAMPOS_INDICACAO}`;
 
 type Linha = {
   id: string;
@@ -67,6 +69,7 @@ type Linha = {
   troca_ano: number | null;
   possui_cnh: boolean;
   consentimento_em: string | null;
+  anotacoes: string;
   status: string;
   created_at: string;
   dados_sensiveis_apagados_em: string | null;
@@ -125,6 +128,7 @@ function paraSimulacao(l: Linha): Simulacao {
     dadosApagadosEm: l.dados_sensiveis_apagados_em,
     indicacao: paraIndicacao(l.cupons),
     valorAproximado: l.valor_aproximado === null ? null : Number(l.valor_aproximado),
+    anotacoes: l.anotacoes,
     veiculo:
       l.veiculo_nome && l.veiculo_preco !== null
         ? {
@@ -210,6 +214,7 @@ export function textoSimulacao(s: Simulacao) {
     `Parcela que busca: ${s.parcela ? moeda(s.parcela) : "não informada"}`,
     `Troca: ${s.temTroca ? `Sim, ${s.trocaModelo ?? ""}${s.trocaAno ? ` ${s.trocaAno}` : ""}`.trim() : "Não"}`,
     ...(s.indicacao ? [textoIndicacao(s.indicacao)] : []),
+    ...(s.anotacoes.trim() ? ["", `Anotações da loja: ${s.anotacoes.trim()}`] : []),
     "",
     s.consentimento ? "Autorizou o uso dos dados para simulação de crédito." : "",
   ]
