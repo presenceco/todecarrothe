@@ -27,8 +27,8 @@ export function Hero({ filtros, soDesktop }: { filtros: Filtros; soDesktop?: boo
           <span className="lg:hidden">SEMINOVOS · TERESINA</span>
           <span className="hidden lg:inline">SEMINOVOS · TERESINA-PI</span>
         </p>
-        <h1 className="relative mt-8 max-w-300 font-display text-32 leading-105 font-extrabold italic lg:mt-12 lg:max-w-none lg:text-60 lg:leading-none">
-          Seu próximo carro está aqui
+        <h1 className="relative mt-8 max-w-340 font-display text-26 leading-110 font-extrabold italic text-balance lg:mt-12 lg:max-w-900 lg:text-52 lg:leading-102">
+          O carro que você quer, pelo preço que você procura!
         </h1>
         <div className="relative mt-28 hidden flex-wrap items-center gap-12 lg:flex">
           <Busca filtros={filtros} variante="desktop" />
