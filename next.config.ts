@@ -46,10 +46,15 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   partialPrefetching: true,
   images: {
+    // Sem a otimização da Vercel: o plano Hobby tem 5 mil transformações por mês e, passado o limite, responde
+    // 402 e a foto some (18/11/2026). As imagens saem como estão: fotos dos carros direto do Supabase e logos
+    // já em tamanho de tela (public/marca/*.webp). As opções abaixo só valem se a otimização for religada.
+    unoptimized: true,
     // 90: foto do Show Automall em "Onde estamos", que perde nitidez com a compressão padrão.
     qualities: [75, 90],
-    // Fotos otimizadas ficam no cache por 5 minutos: a de um carro que saiu do catálogo para de abrir logo.
-    minimumCacheTTL: 300,
+    // 31 dias: a Vercel cobra uma transformação a cada cópia vencida, e o prazo de 5 minutos refazia a mesma foto
+    // o tempo todo. Em troca, a cópia otimizada de um carro que saiu do catálogo pode abrir até vencer.
+    minimumCacheTTL: 2678400,
     remotePatterns: hostSupabase
       ? [{ protocol: "https", hostname: hostSupabase.hostname, pathname: "/storage/v1/object/public/veiculos/**" }]
       : [],

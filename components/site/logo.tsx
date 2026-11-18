@@ -17,12 +17,12 @@ export function Logo({ size = "header", className }: { size?: keyof typeof TAMAN
   const t = TAMANHOS[size];
   return (
     <span className={cn("flex items-center", t.gap, className)}>
-      <Image src="/marca/simbolo.png" alt="" width={600} height={600} loading="eager" className={cn("block", t.simbolo)} />
+      <Image src="/marca/simbolo.webp" alt="" width={600} height={600} loading="eager" className={cn("block", t.simbolo)} />
       <Image
-        src="/marca/wordmark.png"
+        src="/marca/wordmark.webp"
         alt="Tô de Carro Seminovos"
-        width={1385}
-        height={272}
+        width={480}
+        height={94}
         loading="eager"
         className={cn("block w-auto", t.wordmark)}
       />
@@ -32,5 +32,5 @@ export function Logo({ size = "header", className }: { size?: keyof typeof TAMAN
 
 /** Símbolo sozinho (rodapé, marca d'água, menu lateral do admin). */
 export function Simbolo({ className, alt = "" }: { className?: string; alt?: string }) {
-  return <Image src="/marca/simbolo.png" alt={alt} width={600} height={600} className={cn("block", className)} />;
+  return <Image src="/marca/simbolo.webp" alt={alt} width={600} height={600} className={cn("block", className)} />;
 }

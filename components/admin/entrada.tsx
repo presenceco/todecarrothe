@@ -9,7 +9,7 @@ export function Entrada({ titulo, subtitulo, children }: { titulo: string; subti
   return (
     <div className="flex min-h-dvh flex-col lg:grid lg:grid-cols-2">
       <div className="box-border flex h-[calc(360px+env(safe-area-inset-top,0px))] flex-none flex-col items-center gap-18 bg-black pt-[calc(52px+env(safe-area-inset-top,0px))] lg:h-auto lg:justify-center lg:gap-28 lg:pt-0">
-        <Image src="/marca/logo-vertical.png" alt="Tô de Carro Seminovos" width={1440} height={790} preload className="block w-250 lg:w-440" />
+        <Image src="/marca/logo-vertical.webp" alt="Tô de Carro Seminovos" width={880} height={483} preload className="block w-250 lg:w-440" />
         <div aria-hidden="true" className="h-1 w-160 bg-filete lg:w-280" />
         <p className="text-14 font-light tracking-tagline-42 whitespace-nowrap text-gray-350">PAINEL DO LOJISTA</p>
       </div>
