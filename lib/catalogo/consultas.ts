@@ -82,7 +82,14 @@ export async function listarCatalogo(): Promise<VeiculoCatalogo[]> {
   "use cache";
   cacheTag(TAG_VEICULOS);
   cacheLife("hours");
+  return lerCatalogoAgora();
+}
 
+/**
+ * Mesma leitura do `listarCatalogo`, sem cache: o estado do banco neste momento. Usada pelo servidor MCP
+ * (app/api/mcp), que responde a clientes no WhatsApp e não pode mostrar um preço ou carro de antes da mudança.
+ */
+export async function lerCatalogoAgora(): Promise<VeiculoCatalogo[]> {
   const { data, error } = await clientePublico()
     .from("veiculos")
     .select(`${CAMPOS}, veiculo_fotos (path, ordem)`)
@@ -107,7 +114,11 @@ export async function obterVeiculo(slug: string): Promise<VeiculoDetalhe | null>
   "use cache";
   cacheTag(TAG_VEICULOS, `veiculo:${slug}`);
   cacheLife("hours");
+  return lerVeiculoAgora(slug);
+}
 
+/** Mesma leitura do `obterVeiculo`, sem cache (servidor MCP). */
+export async function lerVeiculoAgora(slug: string): Promise<VeiculoDetalhe | null> {
   const { data, error } = await clientePublico()
     .from("veiculos")
     .select(
@@ -147,4 +158,20 @@ export async function anoCorrente() {
   "use cache";
   cacheLife("hours");
   return anoAtual();
+}
+
+/**
+ * Preço atual dos veículos que continuam no catálogo, sem cache (servidor MCP). Slug que não volta saiu do
+ * catálogo: vendido, reservado, em rascunho ou apagado (o RLS não deixa o público ver qual dos casos).
+ */
+export async function precosNoCatalogoAgora(slugs: string[]): Promise<Map<string, number>> {
+  if (!slugs.length) return new Map();
+  const { data, error } = await clientePublico()
+    .from("veiculos")
+    .select("slug, preco")
+    .in("slug", slugs)
+    .eq("status", "disponivel")
+    .eq("publicado", true);
+  if (error) throw new Error(`Falha ao conferir a disponibilidade: ${error.message}`);
+  return new Map(data.map((v) => [v.slug, Number(v.preco)]));
 }
